@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>RoutePlanner - Drive Mapper</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f6f7f9;
+            color: #111;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 360px;
+            max-width: 100vw;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+            z-index: 1000;
+            transition: width 0.25s ease, max-height 0.25s ease;
+        }
+
+        /* Collapsed state */
+        body.sidebar-collapsed #sidebar {
+            width: 0;
+            min-width: 0;
+            overflow: hidden;
+            border-right: none;
+        }
+
+        .header {
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .header h1 {
+            font-size: 1.05rem;
+            color: #111;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .toggle-btn {
+            appearance: none;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            color: #333;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .controls {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        input, button {
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #111;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2b8ed6;
+            box-shadow: 0 0 0 3px rgba(43, 142, 214, 0.15);
+        }
+
+        button {
+            background: #2b8ed6;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        button:hover { background: #2374b0; }
+
+        button.secondary {
+            background: #f5f6f7;
+            border: 1px solid #ddd;
+            color: #111;
+        }
+
+        button.secondary:hover { background: #e8eaed; }
+
+        .btn-group { display: flex; gap: 8px; }
+
+        #route-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            background: #fafafa;
+        }
+
+        .route-card {
+            background: #fff;
+            border: 1px solid #ececec;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.15s, border-color 0.15s;
+        }
+
+        .route-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-color: #d6eaf9;
+        }
+
+        .route-card h3 { font-size: 1rem; margin-bottom: 4px; color: #111; }
+        .route-card p { font-size: 0.85rem; color: #666; }
+
+        .card-actions { margin-top: 8px; display: flex; gap: 6px; }
+
+        .card-actions button { padding: 6px 8px; font-size: 0.85rem; }
+
+        #map {
+            flex: 1;
+            height: 100%;
+            background: #e9eef5;
+        }
+
+        /* Hide leaflet routing panel overlay */
+        .leaflet-routing-container { display: none !important; }
+
+        .hint { font-size: 0.85rem; color: #666; margin-top: 4px; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            body { flex-direction: column; }
+
+            #sidebar {
+                width: 100%;
+                max-height: 42vh;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            body.sidebar-collapsed #sidebar {
+                max-height: 0;
+                overflow: hidden;
+                border-bottom: none;
+            }
+
+            #map { height: 58vh; }
+        }
+
+        /* Numbered Waypoint Marker Styling */
+        .waypoint-marker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #2b8ed6;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar" aria-hidden="false">
+        <div class="header">
+            <h1>Drive Mapper</h1>
+            <div>
+                <button id="sidebar-toggle" class="toggle-btn" aria-pressed="false" title="Toggle sidebar">☰</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="route-name" placeholder="Enter route name..." />
+            <p class="hint">Tap map to drop waypoints or import a saved GPX file.</p>
+            <div class="btn-group">
+                <button id="save-btn">Save Drive</button>
+                <button id="import-btn" class="secondary">Import GPX</button>
+                <button id="clear-btn" class="secondary">Clear</button>
+            </div>
+            <!-- Hidden file input for GPX import -->
+            <input type="file" id="gpx-file-input" accept=".gpx" style="display: none;" />
+        </div>
+
+        <div id="route-list">
+            <!-- Saved routes render here -->
+        </div>
+    </div>
+
+    <div id="map" role="region" aria-label="Map"></div>
+
+    <!-- Leaflet JS & Routing Engine -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        let map = null;
+        let routingControl = null;
+        let currentWaypoints = [];
+        let waypointMarkers = [];
+        
+        // In-memory fallback if localStorage is sandboxed/blocked
+        let memoryStorage = [];
+
+        function getSavedDrives() {
+            try {
+                const raw = localStorage.getItem('saved_drives');
+                return raw ? JSON.parse(raw) : memoryStorage;
+            } catch (e) {
+                return memoryStorage;
+            }
+        }
+
+        function setSavedDrives(drives) {
+            memoryStorage = drives;
+            try {
+                localStorage.setItem('saved_drives', JSON.stringify(drives));
+            } catch (e) {
+                console.warn('LocalStorage blocked; stored in session memory instead.');
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            })[m]);
+        }
+
+        function initRouting() {
+            if (routingControl) return;
+            routingControl = L.Routing.control({
+                waypoints: [],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                }),
+                lineOptions: {
+                    styles: [{ color: '#2b8ed6', opacity: 0.9, weight: 5 }]
+                },
+                addWaypoints: true,
+                draggableWaypoints: true,
+                fitSelectedRoutes: false,
+                show: false
+            }).addTo(map);
+
+            routingControl.on('waypointschanged', function(e) {
+                const latlngs = (e.waypoints || []).map(wp => wp.latLng).filter(pt => pt !== null);
+                currentWaypoints = latlngs;
+                syncMarkersToWaypoints();
+            });
+        }
+
+        function createIconForIndex(index) {
+            return L.divIcon({
+                className: '',
+                html: `<div class="waypoint-marker">${index + 1}</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+        }
+
+        function addMarkerForPoint(latlng, index) {
+            const icon = createIconForIndex(index);
+            const marker = L.marker(latlng, { draggable: true, icon }).addTo(map);
+
+            marker.on('dragend', () => {
+                const pos = marker.getLatLng();
+                const idx = waypointMarkers.indexOf(marker);
+                if (idx !== -1) {
+                    currentWaypoints[idx] = pos;
+                    if (routingControl) routingControl.setWaypoints(currentWaypoints);
+                }
+            });
+
+            waypointMarkers.push(marker);
+            return marker;
+        }
+
+        function clearMarkers() {
+            waypointMarkers.forEach(m => {
+                try { map.removeLayer(m); } catch (e) {}
+            });
+            waypointMarkers = [];
+        }
+
+        function syncMarkersToWaypoints() {
+            clearMarkers();
+            currentWaypoints.forEach((pt, idx) => addMarkerForPoint(pt, idx));
+        }
+
+        function addWaypoint(latlng) {
+            initRouting();
+            currentWaypoints.push(latlng);
+            addMarkerForPoint(latlng, currentWaypoints.length - 1);
+            if (routingControl) routingControl.setWaypoints(currentWaypoints);
+        }
+
+        function saveCurrentRoute() {
+            const nameInput = document.getElementById('route-name');
+            const name = nameInput ? nameInput.value.trim() : '';
+
+            if (!name) {
+                alert('Please enter a route name.');
+                return;
+            }
+
+            if (!Array.isArray(currentWaypoints) || currentWaypoints.length < 2) {
+                alert('Add at least two waypoints on the map before saving.');
+                return;
+            }
+
+            const routeData = {
+                id: 'route_' + Date.now(),
+                name: name,
+                waypoints: currentWaypoints.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) })),
+                createdAt: new Date().toISOString()
+            };
+
+            const existing = getSavedDrives();
+            existing.push(routeData);
+            setSavedDrives(existing);
+
+            if (nameInput) nameInput.value = '';
+            clearCurrentMap();
+            loadSavedRoutes();
+        }
+
+        function loadSavedRoutes() {
+            const listContainer = document.getElementById('route-list');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+
+            const routes = getSavedDrives();
+
+            if (routes.length === 0) {
+                listContainer.innerHTML = '<p class="hint">No saved drives yet.</p>';
+                return;
+            }
+
+            routes.forEach(route => {
+                const card = document.createElement('div');
+                card.className = 'route-card';
+                card.innerHTML = `
+                    <h3>${escapeHtml(route.name)}</h3>
+                    <p>${route.waypoints.length} Waypoints</p>
+                    <div class="card-actions">
+                        <button class="secondary" data-action="view" data-id="${route.id}">View</button>
+                        <button class="secondary" data-action="export" data-id="${route.id}">Export GPX</button>
+                        <button data-action="delete" data-id="${route.id}">Delete</button>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            listContainer.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const act = this.getAttribute('data-action');
+                    const id = this.getAttribute('data-id');
+                    if (act === 'view') displayRoute(id);
+                    else if (act === 'export') exportGPX(id);
+                    else if (act === 'delete') deleteRoute(id);
+                });
+            });
+        }
+
+        function displayRoute(id) {
+            const routes = getSavedDrives();
+            const route = routes.find(r => r.id === id);
+            if (!route) return;
+
+            const leafletPts = route.waypoints.map(w => L.latLng(w.lat, w.lng));
+            currentWaypoints = leafletPts.slice();
+            clearMarkers();
+            syncMarkersToWaypoints();
+
+            if (!routingControl) initRouting();
+            routingControl.setWaypoints(leafletPts);
+
+            if (leafletPts.length > 0) {
+                map.fitBounds(L.latLngBounds(leafletPts), { padding: [50, 50] });
+            }
+        }
+
+        function deleteRoute(id) {
+            let routes = getSavedDrives();
+            routes = routes.filter(r => r.id !== id);
+            setSavedDrives(routes);
+            loadSavedRoutes();
+            clearCurrentMap();
+        }
+
+        function exportGPX(id) {
+            const routes = getSavedDrives();
+            const route = routes.find(r => r.id === id);
+            if (!route) return;
+
+            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+            gpxContent += `<gpx version="1.1" creator="Drive Mapper" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+            gpxContent += `  <trk>\n    <name>${escapeHtml(route.name)}</name>\n    <trkseg>\n`;
+
+            route.waypoints.forEach(pt => {
+                gpxContent += `      <trkpt lat="${pt.lat}" lon="${pt.lng}"></trkpt>\n`;
+            });
+
+            gpxContent += `    </trkseg>\n  </trk>\n</gpx>`;
+
+            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${route.name.toLowerCase().replace(/\s+/g, '_')}.gpx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        // Import GPX functionality
+        function handleGPXImport(file) {
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+                // Extract track points or route points
+                const trkpts = xmlDoc.querySelectorAll('trkpt, rtept, wpt');
+                if (!trkpts || trkpts.length === 0) {
+                    alert('No valid waypoints or track points found in this GPX file.');
+                    return;
+                }
+
+                // Extract name or default to filename
+                const nameNode = xmlDoc.querySelector('name');
+                const defaultName = nameNode ? nameNode.textContent.trim() : file.name.replace(/\.[^/.]+$/, "");
+
+                // Sample points down if dense GPX track log (keep ~15 max for clean editable route)
+                let pts = Array.from(trkpts).map(pt => ({
+                    lat: parseFloat(pt.getAttribute('lat')),
+                    lng: parseFloat(pt.getAttribute('lon'))
+                })).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lng));
+
+                if (pts.length > 20) {
+                    const step = Math.ceil(pts.length / 15);
+                    pts = pts.filter((_, idx) => idx % step === 0 || idx === pts.length - 1);
+                }
+
+                const leafletPts = pts.map(p => L.latLng(p.lat, p.lng));
+                
+                clearCurrentMap();
+                document.getElementById('route-name').value = defaultName;
+                currentWaypoints = leafletPts;
+                
+                if (!routingControl) initRouting();
+                routingControl.setWaypoints(leafletPts);
+                syncMarkersToWaypoints();
+
+                if (leafletPts.length > 0) {
+                    map.fitBounds(L.latLngBounds(leafletPts), { padding: [50, 50] });
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearCurrentMap() {
+            currentWaypoints = [];
+            if (routingControl) routingControl.setWaypoints([]);
+            clearMarkers();
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Polyline && !(layer instanceof L.TileLayer)) {
+                    try { map.removeLayer(layer); } catch (e) {}
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            map = L.map('map').setView([52.052, -3.581], 9);
+
+            // Light Map Tiles (CartoDB Positron)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap &copy; CARTO'
+            }).addTo(map);
+
+            initRouting();
+            loadSavedRoutes();
+
+            map.on('click', function(e) {
+                addWaypoint(e.latlng);
+            });
+
+            document.getElementById('save-btn').addEventListener('click', saveCurrentRoute);
+            document.getElementById('clear-btn').addEventListener('click', clearCurrentMap);
+
+            // GPX File Input triggers
+            const fileInput = document.getElementById('gpx-file-input');
+            document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleGPXImport(e.target.files[0]));
+
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            toggleBtn.addEventListener('click', () => {
+                const collapsed = document.body.classList.toggle('sidebar-collapsed');
+                document.getElementById('sidebar').setAttribute('aria-hidden', String(collapsed));
+                toggleBtn.setAttribute('aria-pressed', String(collapsed));
+                setTimeout(() => {
+                    try { map.invalidateSize(); } catch (e) {}
+                }, 300);
+            });
+
+            setTimeout(() => {
+                try { map.invalidateSize(); } catch (e) {}
+            }, 250);
+
+            window.addEventListener('resize', () => {
+                try { map.invalidateSize(); } catch (e) {}
+            });
+            window.addEventListener('orientationchange', () => {
+                try { map.invalidateSize(); } catch (e) {}
+            });
+        });
+    </script>
+</body>
+</html>
