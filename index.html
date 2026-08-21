@@ -76,7 +76,7 @@
             line-height: 1;
         }
 
-        /* Floating toggle button when sidebar is collapsed */
+        /* Compact floating menu button positioned safely in the top-right */
         #floating-menu-btn {
             display: none;
             position: fixed;
@@ -85,17 +85,22 @@
             z-index: 2000;
             background: #ffffff;
             border: 1px solid #ccc;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
             color: #111;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
         }
 
         body.sidebar-collapsed #floating-menu-btn {
             display: block;
+        }
+
+        /* Shift zoom controls down on the map so floating elements don't obscure them */
+        .leaflet-top.leaflet-left {
+            top: 60px !important;
         }
 
         .controls {
@@ -211,14 +216,14 @@
     </style>
 </head>
 <body>
-    <!-- Persistent Floating Menu Button when map is expanded full screen -->
+    <!-- Floating compact button placed in the top right -->
     <button id="floating-menu-btn" title="Open Menu">☰ Menu</button>
 
     <div id="sidebar" aria-hidden="false">
         <div class="header">
             <h1>Drive Mapper</h1>
             <div>
-                <button id="sidebar-toggle" class="toggle-btn" title="Toggle full screen map">☰</button>
+                <button id="sidebar-toggle" class="toggle-btn" title="Toggle sidebar">☰</button>
             </div>
         </div>
 
@@ -550,7 +555,6 @@
             document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', (e) => handleGPXImport(e.target.files[0]));
 
-            // Event listeners for both sidebar toggle & floating menu button
             document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
             document.getElementById('floating-menu-btn').addEventListener('click', toggleSidebar);
 
