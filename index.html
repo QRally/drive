@@ -37,7 +37,6 @@
             transition: all 0.25s ease;
         }
 
-        /* Collapsed state */
         body.sidebar-collapsed #sidebar {
             width: 0 !important;
             min-width: 0 !important;
@@ -77,7 +76,6 @@
             line-height: 1;
         }
 
-        /* Floating compact menu button positioned safely in top-right */
         #floating-menu-btn {
             display: none;
             position: fixed;
@@ -99,7 +97,6 @@
             display: block;
         }
 
-        /* Shift zoom controls down on the map so floating elements don't obscure them */
         .leaflet-top.leaflet-left {
             top: 60px !important;
         }
@@ -253,6 +250,7 @@
         let map = null;
         let routingControl = null;
         let currentWaypoints = [];
+        let currentRouteGeometry = []; // Stores detailed road trace points
         let waypointMarkers = [];
         let memoryStorage = [];
 
@@ -301,6 +299,13 @@
                 const latlngs = (e.waypoints || []).map(wp => wp.latLng).filter(pt => pt !== null);
                 currentWaypoints = latlngs;
                 syncMarkersToWaypoints();
+            });
+
+            // Capture precise road geometry whenever route calculations finish
+            routingControl.on('routesfound', function(e) {
+                if (e.routes && e.routes[0] && e.routes[0].coordinates) {
+                    currentRouteGeometry = e.routes[0].coordinates.map(c => ({ lat: c.lat, lng: c.lng }));
+                }
             });
         }
 
@@ -367,6 +372,7 @@
                 id: 'route_' + Date.now(),
                 name: name,
                 waypoints: currentWaypoints.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) })),
+                geometry: currentRouteGeometry && currentRouteGeometry.length > 0 ? currentRouteGeometry : currentWaypoints.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) })),
                 createdAt: new Date().toISOString()
             };
 
@@ -424,6 +430,7 @@
 
             const leafletPts = route.waypoints.map(w => L.latLng(w.lat, w.lng));
             currentWaypoints = leafletPts.slice();
+            currentRouteGeometry = route.geometry || [];
             clearMarkers();
             syncMarkersToWaypoints();
 
@@ -448,14 +455,24 @@
             const route = routes.find(r => r.id === id);
             if (!route) return;
 
+            // Use high-density geometry points if available, falling back to waypoints
+            const pointsToExport = (route.geometry && route.geometry.length > 0) 
+                ? route.geometry 
+                : route.waypoints;
+
             let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
             gpxContent += `<gpx version="1.1" creator="RouteCraft" xmlns="http://www.topografix.com/GPX/1/1">\n`;
-            gpxContent += `  <trk>\n    <name>${escapeHtml(route.name)}</name>\n    <trkseg>\n`;
-
-            route.waypoints.forEach(pt => {
-                gpxContent += `      <trkpt lat="${pt.lat}" lon="${pt.lng}"></trkpt>\n`;
+            
+            // Export control markers as Waypoints (<wpt>)
+            route.waypoints.forEach((pt, index) => {
+                gpxContent += `  <wpt lat="${pt.lat}" lon="${pt.lng}">\n    <name>Waypoint ${index + 1}</name>\n  </wpt>\n`;
             });
 
+            // Export detailed road line as Track Points (<trkpt>)
+            gpxContent += `  <trk>\n    <name>${escapeHtml(route.name)}</name>\n    <trkseg>\n`;
+            pointsToExport.forEach(pt => {
+                gpxContent += `      <trkpt lat="${pt.lat}" lon="${pt.lng}"></trkpt>\n`;
+            });
             gpxContent += `    </trkseg>\n  </trk>\n</gpx>`;
 
             const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
@@ -516,6 +533,7 @@
 
         function clearCurrentMap() {
             currentWaypoints = [];
+            currentRouteGeometry = [];
             if (routingControl) routingControl.setWaypoints([]);
             clearMarkers();
             map.eachLayer(function(layer) {
