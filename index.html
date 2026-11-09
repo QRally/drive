@@ -197,19 +197,62 @@
             #map { height: 58vh; flex: 1; }
         }
 
-        .waypoint-marker {
+        .waypoint-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #2b8ed6;
+            color: white;
+            border-radius: 16px;
+            padding: 3px 8px 3px 4px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            cursor: grab;
+        }
+
+        .waypoint-badge:active {
+            cursor: grabbing;
+        }
+
+        .waypoint-badge .number {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #2b8ed6;
-            color: white;
-            font-size: 13px;
-            font-weight: 700;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+            margin-right: 5px;
+            font-size: 11px;
+        }
+
+        .marker-popup {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 160px;
+        }
+
+        .marker-popup input {
+            padding: 6px 8px;
+            font-size: 0.85rem;
+        }
+
+        .marker-popup button {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .marker-popup button:hover {
+            background: #c0392b;
         }
     </style>
 </head>
@@ -226,7 +269,7 @@
 
         <div class="controls">
             <input type="text" id="route-name" placeholder="Enter route name..." />
-            <p class="hint">Tap map to drop waypoints or import a saved GPX file.</p>
+            <p class="hint">Tap map to drop waypoints. Click a marker to edit name (e.g. Start, Control 1, Finish) or delete.</p>
             <div class="btn-group">
                 <button id="save-btn">Save Route</button>
                 <button id="import-btn" class="secondary">Import GPX</button>
@@ -249,8 +292,8 @@
     <script>
         let map = null;
         let routingControl = null;
-        let currentWaypoints = [];
-        let currentRouteGeometry = []; // Stores detailed road trace points
+        let currentWaypoints = []; // Stores objects: { lat, lng, label }
+        let currentRouteGeometry = []; 
         let waypointMarkers = [];
         let memoryStorage = [];
 
@@ -289,19 +332,13 @@
                 lineOptions: {
                     styles: [{ color: '#2b8ed6', opacity: 0.9, weight: 5 }]
                 },
-                addWaypoints: true,
-                draggableWaypoints: true,
+                addWaypoints: false,
+                draggableWaypoints: false,
+                createMarker: () => null,
                 fitSelectedRoutes: false,
                 show: false
             }).addTo(map);
 
-            routingControl.on('waypointschanged', function(e) {
-                const latlngs = (e.waypoints || []).map(wp => wp.latLng).filter(pt => pt !== null);
-                currentWaypoints = latlngs;
-                syncMarkersToWaypoints();
-            });
-
-            // Capture precise road geometry whenever route calculations finish
             routingControl.on('routesfound', function(e) {
                 if (e.routes && e.routes[0] && e.routes[0].coordinates) {
                     currentRouteGeometry = e.routes[0].coordinates.map(c => ({ lat: c.lat, lng: c.lng }));
@@ -309,25 +346,62 @@
             });
         }
 
-        function createIconForIndex(index) {
+        function updateRoutingWaypoints() {
+            if (!routingControl) return;
+            const latLngs = currentWaypoints.map(wp => L.latLng(wp.lat, wp.lng));
+            routingControl.setWaypoints(latLngs);
+        }
+
+        function createIconForWaypoint(wp, index) {
+            const labelText = wp.label ? wp.label : `Point ${index + 1}`;
             return L.divIcon({
                 className: '',
-                html: `<div class="waypoint-marker">${index + 1}</div>`,
-                iconSize: [28, 28],
+                html: `<div class="waypoint-badge"><span class="number">${index + 1}</span><span>${escapeHtml(labelText)}</span></div>`,
+                iconSize: [null, 28],
                 iconAnchor: [14, 14]
             });
         }
 
-        function addMarkerForPoint(latlng, index) {
-            const icon = createIconForIndex(index);
+        function removeWaypointAtIndex(index) {
+            currentWaypoints.splice(index, 1);
+            updateRoutingWaypoints();
+            syncMarkersToWaypoints();
+        }
+
+        function addMarkerForPoint(wp, index) {
+            const latlng = L.latLng(wp.lat, wp.lng);
+            const icon = createIconForWaypoint(wp, index);
             const marker = L.marker(latlng, { draggable: true, icon }).addTo(map);
+
+            const popupContent = document.createElement('div');
+            popupContent.className = 'marker-popup';
+            popupContent.innerHTML = `
+                <input type="text" value="${escapeHtml(wp.label || '')}" placeholder="Label (e.g. Start, Control 1)" />
+                <button type="button">Delete Waypoint</button>
+            `;
+
+            const inputEl = popupContent.querySelector('input');
+            const deleteBtn = popupContent.querySelector('button');
+
+            inputEl.addEventListener('input', (e) => {
+                currentWaypoints[index].label = e.target.value;
+                marker.setIcon(createIconForWaypoint(currentWaypoints[index], index));
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                map.closePopup();
+                removeWaypointAtIndex(index);
+            });
+
+            marker.bindPopup(popupContent);
 
             marker.on('dragend', () => {
                 const pos = marker.getLatLng();
                 const idx = waypointMarkers.indexOf(marker);
                 if (idx !== -1) {
-                    currentWaypoints[idx] = pos;
-                    if (routingControl) routingControl.setWaypoints(currentWaypoints);
+                    currentWaypoints[idx].lat = pos.lat;
+                    currentWaypoints[idx].lng = pos.lng;
+                    updateRoutingWaypoints();
                 }
             });
 
@@ -344,14 +418,24 @@
 
         function syncMarkersToWaypoints() {
             clearMarkers();
-            currentWaypoints.forEach((pt, idx) => addMarkerForPoint(pt, idx));
+            currentWaypoints.forEach((wp, idx) => addMarkerForPoint(wp, idx));
         }
 
         function addWaypoint(latlng) {
             initRouting();
-            currentWaypoints.push(latlng);
-            addMarkerForPoint(latlng, currentWaypoints.length - 1);
-            if (routingControl) routingControl.setWaypoints(currentWaypoints);
+            // Automatically suggest default labels for first and last points if desired, e.g., Start / Finish
+            let defaultLabel = '';
+            if (currentWaypoints.length === 0) defaultLabel = 'Start';
+            
+            currentWaypoints.push({ lat: latlng.lat, lng: latlng.lng, label: defaultLabel });
+            
+            // If we just added a second or subsequent point, make sure the last one can be 'Finish' if preferred, or leave blank
+            if (currentWaypoints.length === 2 && currentWaypoints[1].label === '') {
+                currentWaypoints[1].label = 'Finish';
+            }
+
+            syncMarkersToWaypoints();
+            updateRoutingWaypoints();
         }
 
         function saveCurrentRoute() {
@@ -371,8 +455,8 @@
             const routeData = {
                 id: 'route_' + Date.now(),
                 name: name,
-                waypoints: currentWaypoints.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) })),
-                geometry: currentRouteGeometry && currentRouteGeometry.length > 0 ? currentRouteGeometry : currentWaypoints.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) })),
+                waypoints: currentWaypoints.map(wp => ({ lat: Number(wp.lat), lng: Number(wp.lng), label: wp.label || '' })),
+                geometry: currentRouteGeometry && currentRouteGeometry.length > 0 ? currentRouteGeometry : currentWaypoints.map(wp => ({ lat: Number(wp.lat), lng: Number(wp.lng) })),
                 createdAt: new Date().toISOString()
             };
 
@@ -428,15 +512,14 @@
             const route = routes.find(r => r.id === id);
             if (!route) return;
 
-            const leafletPts = route.waypoints.map(w => L.latLng(w.lat, w.lng));
-            currentWaypoints = leafletPts.slice();
+            currentWaypoints = route.waypoints.map(w => ({ lat: w.lat, lng: w.lng, label: w.label || '' }));
             currentRouteGeometry = route.geometry || [];
-            clearMarkers();
             syncMarkersToWaypoints();
 
             if (!routingControl) initRouting();
-            routingControl.setWaypoints(leafletPts);
+            updateRoutingWaypoints();
 
+            const leafletPts = currentWaypoints.map(w => L.latLng(w.lat, w.lng));
             if (leafletPts.length > 0) {
                 map.fitBounds(L.latLngBounds(leafletPts), { padding: [50, 50] });
             }
@@ -455,7 +538,6 @@
             const route = routes.find(r => r.id === id);
             if (!route) return;
 
-            // Use high-density geometry points if available, falling back to waypoints
             const pointsToExport = (route.geometry && route.geometry.length > 0) 
                 ? route.geometry 
                 : route.waypoints;
@@ -463,12 +545,11 @@
             let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
             gpxContent += `<gpx version="1.1" creator="RouteCraft" xmlns="http://www.topografix.com/GPX/1/1">\n`;
             
-            // Export control markers as Waypoints (<wpt>)
             route.waypoints.forEach((pt, index) => {
-                gpxContent += `  <wpt lat="${pt.lat}" lon="${pt.lng}">\n    <name>Waypoint ${index + 1}</name>\n  </wpt>\n`;
+                const wptName = pt.label ? pt.label : `Waypoint ${index + 1}`;
+                gpxContent += `  <wpt lat="${pt.lat}" lon="${pt.lng}">\n    <name>${escapeHtml(wptName)}</name>\n  </wpt>\n`;
             });
 
-            // Export detailed road line as Track Points (<trkpt>)
             gpxContent += `  <trk>\n    <name>${escapeHtml(route.name)}</name>\n    <trkseg>\n`;
             pointsToExport.forEach(pt => {
                 gpxContent += `      <trkpt lat="${pt.lat}" lon="${pt.lng}"></trkpt>\n`;
@@ -495,8 +576,10 @@
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(text, 'text/xml');
 
-                const trkpts = xmlDoc.querySelectorAll('trkpt, rtept, wpt');
-                if (!trkpts || trkpts.length === 0) {
+                const wpts = xmlDoc.querySelectorAll('wpt');
+                const trkpts = xmlDoc.querySelectorAll('trkpt, rtept');
+                
+                if ((!trkpts || trkpts.length === 0) && (!wpts || wpts.length === 0)) {
                     alert('No valid waypoints or track points found in this GPX file.');
                     return;
                 }
@@ -504,26 +587,44 @@
                 const nameNode = xmlDoc.querySelector('name');
                 const defaultName = nameNode ? nameNode.textContent.trim() : file.name.replace(/\.[^/.]+$/, "");
 
-                let pts = Array.from(trkpts).map(pt => ({
-                    lat: parseFloat(pt.getAttribute('lat')),
-                    lng: parseFloat(pt.getAttribute('lon'))
-                })).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lng));
-
-                if (pts.length > 20) {
-                    const step = Math.ceil(pts.length / 15);
-                    pts = pts.filter((_, idx) => idx % step === 0 || idx === pts.length - 1);
+                let importedWaypoints = [];
+                if (wpts && wpts.length > 0) {
+                    importedWaypoints = Array.from(wpts).map(wpt => {
+                        const nameEl = wpt.querySelector('name');
+                        return {
+                            lat: parseFloat(wpt.getAttribute('lat')),
+                            lng: parseFloat(wpt.getAttribute('lon')),
+                            label: nameEl ? nameEl.textContent.trim() : ''
+                        };
+                    }).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lng));
                 }
 
-                const leafletPts = pts.map(p => L.latLng(p.lat, p.lng));
-                
+                if (importedWaypoints.length < 2 && trkpts && trkpts.length > 0) {
+                    let pts = Array.from(trkpts).map(pt => ({
+                        lat: parseFloat(pt.getAttribute('lat')),
+                        lng: parseFloat(pt.getAttribute('lon'))
+                    })).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lng));
+
+                    if (pts.length > 20) {
+                        const step = Math.ceil(pts.length / 15);
+                        pts = pts.filter((_, idx) => idx % step === 0 || idx === pts.length - 1);
+                    }
+                    importedWaypoints = pts.map((p, idx) => ({
+                        lat: p.lat,
+                        lng: p.lng,
+                        label: idx === 0 ? 'Start' : (idx === pts.length - 1 ? 'Finish' : '')
+                    }));
+                }
+
                 clearCurrentMap();
                 document.getElementById('route-name').value = defaultName;
-                currentWaypoints = leafletPts;
+                currentWaypoints = importedWaypoints;
                 
                 if (!routingControl) initRouting();
-                routingControl.setWaypoints(leafletPts);
+                updateRoutingWaypoints();
                 syncMarkersToWaypoints();
 
+                const leafletPts = currentWaypoints.map(w => L.latLng(w.lat, w.lng));
                 if (leafletPts.length > 0) {
                     map.fitBounds(L.latLngBounds(leafletPts), { padding: [50, 50] });
                 }
