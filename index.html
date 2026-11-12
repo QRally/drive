@@ -20,6 +20,7 @@
         body {
             display: flex;
             height: 100vh;
+            height: 100dvh;
             background-color: #f6f7f9;
             color: #111;
             overflow: hidden;
@@ -54,6 +55,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .header h1 {
@@ -72,7 +74,7 @@
             padding: 8px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             line-height: 1;
             width: auto;
         }
@@ -104,11 +106,12 @@
         }
 
         .controls {
-            padding: 14px 16px;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             gap: 8px;
             border-bottom: 1px solid #eee;
+            flex-shrink: 0;
         }
 
         input, textarea, button {
@@ -123,7 +126,7 @@
 
         textarea {
             resize: vertical;
-            min-height: 54px;
+            min-height: 40px;
             line-height: 1.4;
         }
 
@@ -189,7 +192,7 @@
             margin-bottom: 8px;
         }
 
-        /* Waypoint Editor List in Sidebar */
+        /* Waypoint & Textbox Editor Lists in Sidebar */
         #waypoint-editor-list, #textbox-editor-list {
             display: flex;
             flex-direction: column;
@@ -250,13 +253,13 @@
         }
 
         .wp-del-btn {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             padding: 0;
             background: #fee2e2;
             color: #dc2626;
             border: none;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             border-radius: 4px;
             display: inline-flex;
             align-items: center;
@@ -277,7 +280,7 @@
         }
 
         .tb-locate-btn {
-            padding: 4px 8px;
+            padding: 5px 10px;
             font-size: 0.78rem;
             width: auto;
         }
@@ -368,12 +371,67 @@
 
             #sidebar {
                 width: 100%;
-                max-height: 48vh;
+                max-height: 45dvh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
                 border-right: none;
-                border-bottom: 1px solid #e0e0e0;
+                border-bottom: 1px solid #d4d8dd;
             }
 
-            #map { height: 52vh; flex: 1; }
+            .header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                padding: 8px 12px;
+            }
+
+            .controls {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+
+            .controls input, .controls textarea {
+                padding: 7px 10px;
+                font-size: 0.88rem;
+            }
+
+            #route-notes {
+                min-height: 36px;
+            }
+
+            .controls button {
+                padding: 8px 10px;
+                font-size: 0.85rem;
+            }
+
+            .hint {
+                font-size: 0.75rem;
+            }
+
+            .sidebar-scroll {
+                flex: none;
+                overflow-y: visible;
+                padding: 10px 12px 16px;
+                gap: 12px;
+            }
+
+            #map {
+                flex: 1;
+                min-height: 55dvh;
+                height: auto;
+            }
+
+            .wp-map-del {
+                width: 26px !important;
+                height: 26px !important;
+                font-size: 12px !important;
+            }
+
+            .map-textbox-del {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 13px !important;
+            }
         }
 
         /* Editable Map Waypoint Badge */
@@ -383,8 +441,8 @@
             gap: 4px;
             background: #2b8ed6;
             color: white;
-            border-radius: 18px;
-            padding: 3px 6px 3px 4px;
+            border-radius: 20px;
+            padding: 3px 4px 3px 4px;
             font-size: 12px;
             font-weight: 700;
             border: 2px solid #ffffff;
@@ -400,8 +458,8 @@
         .waypoint-badge .number {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -411,10 +469,10 @@
         }
 
         .waypoint-map-input {
-            width: 72px;
-            min-width: 48px;
+            width: 64px;
+            min-width: 44px;
             max-width: 180px;
-            padding: 2px 6px;
+            padding: 3px 6px;
             font-size: 12px;
             font-weight: 700;
             color: #ffffff;
@@ -443,20 +501,21 @@
         }
 
         .wp-map-del {
-            width: 17px;
-            height: 17px;
+            width: 22px;
+            height: 22px;
             padding: 0;
             border: none;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.22);
+            background: rgba(0, 0, 0, 0.28);
             color: #ffffff;
-            font-size: 10px;
+            font-size: 11px;
             line-height: 1;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             flex-shrink: 0;
+            touch-action: manipulation;
         }
 
         .wp-map-del:hover {
@@ -469,7 +528,7 @@
             border: 1.5px solid #cbd5e1;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
-            width: 196px;
+            width: 204px;
             overflow: hidden;
         }
 
@@ -502,19 +561,20 @@
         }
 
         .map-textbox-del {
-            width: 18px;
-            height: 18px;
+            width: 24px;
+            height: 24px;
             padding: 0;
             border: none;
             border-radius: 4px;
             background: transparent;
             color: #92400e;
-            font-size: 11px;
+            font-size: 12px;
             line-height: 1;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         .map-textbox-del:hover {
@@ -558,8 +618,8 @@
 
         <div class="controls">
             <input type="text" id="route-name" placeholder="Enter route name..." />
-            <textarea id="route-notes" placeholder="Enter route notes, briefing, or instructions..."></textarea>
-            <p class="hint" id="mode-hint">Tap map to drop waypoints. Edit names directly on map badges or in the sidebar. Drag badges to move.</p>
+            <textarea id="route-notes" rows="1" placeholder="Enter route notes, briefing, or instructions..."></textarea>
+            <p class="hint" id="mode-hint">Tap map to drop waypoints. Edit names on map badges or below. Drag badges to move.</p>
             <div class="btn-group">
                 <button id="save-btn">Save Route</button>
                 <button id="add-textbox-btn" class="secondary">+ Text Box</button>
@@ -608,6 +668,7 @@
         let isPlacingTextBox = false;
         let editingRouteId = null;
         let toastTimer = null;
+        let suppressMapClickUntil = 0;
 
         function showToast(message) {
             const el = document.getElementById('toast-banner');
@@ -659,11 +720,36 @@
 
         function stopMarkerEventPropagation(el) {
             if (!el) return;
-            ['mousedown', 'pointerdown', 'touchstart', 'click', 'dblclick'].forEach(evt => {
+            ['mousedown', 'mouseup', 'pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'dblclick'].forEach(evt => {
                 el.addEventListener(evt, (e) => {
                     e.stopPropagation();
                 });
             });
+        }
+
+        function bindMarkerDeleteButton(btn, onDelete) {
+            if (!btn) return;
+            let handled = false;
+
+            const triggerDelete = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                suppressMapClickUntil = Date.now() + 500;
+                if (handled) return;
+                handled = true;
+                setTimeout(() => { handled = false; }, 350);
+                onDelete();
+            };
+
+            ['mousedown', 'mouseup', 'pointerdown', 'touchstart'].forEach(evt => {
+                btn.addEventListener(evt, (e) => {
+                    e.stopPropagation();
+                    suppressMapClickUntil = Date.now() + 500;
+                });
+            });
+
+            btn.addEventListener('touchend', triggerDelete);
+            btn.addEventListener('click', triggerDelete);
         }
 
         function setTextBoxPlacementMode(active) {
@@ -682,7 +768,7 @@
             if (hintEl) {
                 hintEl.textContent = active
                     ? 'Tap anywhere on the map to drop an editable text box.'
-                    : 'Tap map to drop waypoints. Edit names directly on map badges or in the sidebar. Drag badges to move.';
+                    : 'Tap map to drop waypoints. Edit names on map badges or below. Drag badges to move.';
             }
         }
 
@@ -732,11 +818,11 @@
                             style="width: ${widthStyle};"
                             aria-label="Waypoint ${index + 1} name"
                         />
-                        <button type="button" class="wp-map-del" title="Remove waypoint">✕</button>
+                        <button type="button" class="wp-map-del" title="Remove waypoint" aria-label="Remove waypoint ${index + 1}">✕</button>
                     </div>
                 `,
-                iconSize: [null, 30],
-                iconAnchor: [15, 15]
+                iconSize: [null, 32],
+                iconAnchor: [16, 16]
             });
         }
 
@@ -747,13 +833,13 @@
                     <div class="map-textbox-card">
                         <div class="map-textbox-header" title="Drag to move text box">
                             <span class="map-textbox-title">⠿ Note</span>
-                            <button type="button" class="map-textbox-del" title="Remove text box">✕</button>
+                            <button type="button" class="map-textbox-del" title="Remove text box" aria-label="Remove text box">✕</button>
                         </div>
                         <textarea class="map-textbox-input" placeholder="Type map note...">${escapeHtml(tb.text || '')}</textarea>
                     </div>
                 `,
-                iconSize: [196, null],
-                iconAnchor: [98, 12]
+                iconSize: [204, null],
+                iconAnchor: [102, 14]
             });
         }
 
@@ -895,6 +981,7 @@
                 if (!el) return;
                 L.DomEvent.disableClickPropagation(el);
                 L.DomEvent.disableScrollPropagation(el);
+                stopMarkerEventPropagation(el);
 
                 const mapInput = el.querySelector('.waypoint-map-input');
                 const mapDelBtn = el.querySelector('.wp-map-del');
@@ -918,16 +1005,14 @@
                     });
                 }
 
-                if (mapDelBtn) {
-                    stopMarkerEventPropagation(mapDelBtn);
-                    mapDelBtn.addEventListener('click', () => {
-                        const idx = waypointMarkers.indexOf(marker);
-                        if (idx !== -1) removeWaypointAtIndex(idx);
-                    });
-                }
+                bindMarkerDeleteButton(mapDelBtn, () => {
+                    const idx = waypointMarkers.indexOf(marker);
+                    if (idx !== -1) removeWaypointAtIndex(idx);
+                });
             });
 
             marker.on('dragend', () => {
+                suppressMapClickUntil = Date.now() + 300;
                 const pos = marker.getLatLng();
                 const idx = waypointMarkers.indexOf(marker);
                 if (idx !== -1) {
@@ -951,6 +1036,7 @@
                 if (!el) return;
                 L.DomEvent.disableClickPropagation(el);
                 L.DomEvent.disableScrollPropagation(el);
+                stopMarkerEventPropagation(el);
 
                 const mapTextarea = el.querySelector('.map-textbox-input');
                 const mapDelBtn = el.querySelector('.map-textbox-del');
@@ -978,16 +1064,14 @@
                     }
                 }
 
-                if (mapDelBtn) {
-                    stopMarkerEventPropagation(mapDelBtn);
-                    mapDelBtn.addEventListener('click', () => {
-                        const idx = textBoxMarkers.indexOf(marker);
-                        if (idx !== -1) removeTextBoxAtIndex(idx);
-                    });
-                }
+                bindMarkerDeleteButton(mapDelBtn, () => {
+                    const idx = textBoxMarkers.indexOf(marker);
+                    if (idx !== -1) removeTextBoxAtIndex(idx);
+                });
             });
 
             marker.on('dragend', () => {
+                suppressMapClickUntil = Date.now() + 300;
                 const pos = marker.getLatLng();
                 const idx = textBoxMarkers.indexOf(marker);
                 if (idx !== -1) {
@@ -1428,6 +1512,7 @@
             loadSavedRoutes();
 
             map.on('click', function(e) {
+                if (Date.now() < suppressMapClickUntil) return;
                 if (isPlacingTextBox) {
                     addTextBox(e.latlng);
                 } else {
