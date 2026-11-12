@@ -27,7 +27,7 @@
         }
 
         #sidebar {
-            width: 360px;
+            width: 370px;
             max-width: 100vw;
             background: #ffffff;
             display: flex;
@@ -74,6 +74,7 @@
             cursor: pointer;
             font-size: 1.1rem;
             line-height: 1;
+            width: auto;
         }
 
         #floating-menu-btn {
@@ -91,6 +92,7 @@
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
+            width: auto;
         }
 
         body.sidebar-collapsed #floating-menu-btn {
@@ -102,24 +104,30 @@
         }
 
         .controls {
-            padding: 16px;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
             border-bottom: 1px solid #eee;
         }
 
-        input, button {
-            padding: 10px 12px;
+        input, textarea, button {
+            padding: 9px 11px;
             border-radius: 6px;
             border: 1px solid #ddd;
             background: #fff;
             color: #111;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             width: 100%;
         }
 
-        input:focus {
+        textarea {
+            resize: vertical;
+            min-height: 54px;
+            line-height: 1.4;
+        }
+
+        input:focus, textarea:focus {
             outline: none;
             border-color: #2b8ed6;
             box-shadow: 0 0 0 3px rgba(43, 142, 214, 0.15);
@@ -131,7 +139,7 @@
             color: #fff;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
         }
 
         button:hover { background: #2374b0; }
@@ -144,13 +152,134 @@
 
         button.secondary:hover { background: #e8eaed; }
 
-        .btn-group { display: flex; gap: 8px; }
+        button.secondary.active-mode {
+            background: #e6f3fc;
+            border-color: #2b8ed6;
+            color: #16659e;
+        }
 
-        #route-list {
+        button.danger {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        button.danger:hover {
+            background: #fecaca;
+        }
+
+        .btn-group { display: flex; gap: 6px; }
+
+        .sidebar-scroll {
             flex: 1;
             overflow-y: auto;
             padding: 12px 16px;
             background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        /* Waypoint Editor List in Sidebar */
+        #waypoint-editor-list, #textbox-editor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .wp-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .wp-row-top {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .wp-num {
+            background: #2b8ed6;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .tb-badge-num {
+            background: #d97706;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .wp-row input, .wp-row textarea {
+            padding: 6px 8px;
+            font-size: 0.85rem;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .wp-note-input {
+            color: #444;
+            font-size: 0.82rem !important;
+            background: #fafafa !important;
+        }
+
+        .wp-del-btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .wp-del-btn:hover {
+            background: #fecaca;
+        }
+
+        .tb-row-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .tb-locate-btn {
+            padding: 4px 8px;
+            font-size: 0.78rem;
+            width: auto;
         }
 
         .route-card {
@@ -169,10 +298,31 @@
 
         .route-card h3 { font-size: 1rem; margin-bottom: 4px; color: #111; }
         .route-card p { font-size: 0.85rem; color: #666; }
+        .route-card .route-card-notes {
+            margin-top: 6px;
+            font-size: 0.82rem;
+            color: #444;
+            background: #f8f9fb;
+            border: 1px solid #eceff3;
+            border-radius: 5px;
+            padding: 6px 8px;
+            white-space: pre-wrap;
+        }
 
-        .card-actions { margin-top: 8px; display: flex; gap: 6px; }
+        .route-edit-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
 
-        .card-actions button { padding: 6px 8px; font-size: 0.85rem; }
+        .route-edit-fields input, .route-edit-fields textarea {
+            padding: 6px 8px;
+            font-size: 0.85rem;
+        }
+
+        .card-actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+        .card-actions button { padding: 6px 8px; font-size: 0.82rem; flex: 1; min-width: 64px; }
 
         #map {
             flex: 1;
@@ -180,30 +330,61 @@
             background: #e9eef5;
         }
 
+        #map.placing-textbox {
+            cursor: crosshair !important;
+        }
+
         .leaflet-routing-container { display: none !important; }
 
-        .hint { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        .hint { font-size: 0.8rem; color: #666; line-height: 1.35; }
+
+        /* Toast notification */
+        #toast-banner {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 3000;
+            background: #1f2937;
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.86rem;
+            font-weight: 500;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            max-width: 320px;
+        }
+
+        #toast-banner.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         @media (max-width: 600px) {
             body { flex-direction: column; }
 
             #sidebar {
                 width: 100%;
-                max-height: 42vh;
+                max-height: 48vh;
                 border-right: none;
                 border-bottom: 1px solid #e0e0e0;
             }
 
-            #map { height: 58vh; flex: 1; }
+            #map { height: 52vh; flex: 1; }
         }
 
+        /* Editable Map Waypoint Badge */
         .waypoint-badge {
             display: inline-flex;
             align-items: center;
+            gap: 4px;
             background: #2b8ed6;
             color: white;
-            border-radius: 16px;
-            padding: 3px 8px 3px 4px;
+            border-radius: 18px;
+            padding: 3px 6px 3px 4px;
             font-size: 12px;
             font-weight: 700;
             border: 2px solid #ffffff;
@@ -217,42 +398,150 @@
         }
 
         .waypoint-badge .number {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.25);
             border-radius: 50%;
             width: 20px;
             height: 20px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-right: 5px;
             font-size: 11px;
+            flex-shrink: 0;
+            user-select: none;
         }
 
-        .marker-popup {
-            padding: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            min-width: 160px;
+        .waypoint-map-input {
+            width: 72px;
+            min-width: 48px;
+            max-width: 180px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            line-height: 1.25;
+            cursor: text;
         }
 
-        .marker-popup input {
-            padding: 6px 8px;
-            font-size: 0.85rem;
+        .waypoint-map-input::placeholder {
+            color: rgba(255, 255, 255, 0.78);
+            font-weight: 500;
         }
 
-        .marker-popup button {
-            background: #e74c3c;
-            color: #fff;
+        .waypoint-map-input:focus {
+            background: #ffffff;
+            color: #111111;
+            border-color: #ffffff;
+            box-shadow: none;
+            outline: none;
+        }
+
+        .waypoint-map-input:focus::placeholder {
+            color: #888888;
+        }
+
+        .wp-map-del {
+            width: 17px;
+            height: 17px;
+            padding: 0;
             border: none;
-            padding: 6px 8px;
-            font-size: 0.8rem;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.22);
+            color: #ffffff;
+            font-size: 10px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .wp-map-del:hover {
+            background: #dc2626;
+        }
+
+        /* Draggable Editable Map Text Box */
+        .map-textbox-card {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+            width: 196px;
+            overflow: hidden;
+        }
+
+        .map-textbox-card:focus-within {
+            border-color: #2b8ed6;
+            box-shadow: 0 4px 14px rgba(43, 142, 214, 0.28);
+        }
+
+        .map-textbox-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fef3c7;
+            border-bottom: 1px solid #fde68a;
+            padding: 3px 6px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .map-textbox-header:active {
+            cursor: grabbing;
+        }
+
+        .map-textbox-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #92400e;
+        }
+
+        .map-textbox-del {
+            width: 18px;
+            height: 18px;
+            padding: 0;
+            border: none;
             border-radius: 4px;
+            background: transparent;
+            color: #92400e;
+            font-size: 11px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
         }
 
-        .marker-popup button:hover {
-            background: #c0392b;
+        .map-textbox-del:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .map-textbox-input {
+            display: block;
+            width: 100%;
+            min-height: 46px;
+            max-height: 140px;
+            padding: 6px 8px;
+            border: none;
+            border-radius: 0;
+            background: #ffffff;
+            color: #111827;
+            font-size: 12px;
+            line-height: 1.35;
+            resize: none;
+            cursor: text;
+        }
+
+        .map-textbox-input:focus {
+            outline: none;
+            box-shadow: none;
+            border: none;
         }
     </style>
 </head>
@@ -269,21 +558,39 @@
 
         <div class="controls">
             <input type="text" id="route-name" placeholder="Enter route name..." />
-            <p class="hint">Tap map to drop waypoints. Click a marker to edit name (e.g. Start, Control 1, Finish) or delete.</p>
+            <textarea id="route-notes" placeholder="Enter route notes, briefing, or instructions..."></textarea>
+            <p class="hint" id="mode-hint">Tap map to drop waypoints. Edit names directly on map badges or in the sidebar. Drag badges to move.</p>
             <div class="btn-group">
                 <button id="save-btn">Save Route</button>
+                <button id="add-textbox-btn" class="secondary">+ Text Box</button>
+            </div>
+            <div class="btn-group">
                 <button id="import-btn" class="secondary">Import GPX</button>
                 <button id="clear-btn" class="secondary">Clear</button>
             </div>
             <input type="file" id="gpx-file-input" accept=".gpx" style="display: none;" />
         </div>
 
-        <div id="route-list">
-            <!-- Saved routes render here -->
+        <div class="sidebar-scroll">
+            <div id="active-waypoints-section" style="display: none;">
+                <div class="section-title">Active Waypoints</div>
+                <div id="waypoint-editor-list"></div>
+            </div>
+
+            <div id="active-textboxes-section" style="display: none;">
+                <div class="section-title">Map Text Boxes</div>
+                <div id="textbox-editor-list"></div>
+            </div>
+
+            <div>
+                <div class="section-title">Saved Routes</div>
+                <div id="route-list"></div>
+            </div>
         </div>
     </div>
 
     <div id="map" role="region" aria-label="Map"></div>
+    <div id="toast-banner" role="status" aria-live="polite"></div>
 
     <!-- Leaflet JS & Routing Engine -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -292,10 +599,26 @@
     <script>
         let map = null;
         let routingControl = null;
-        let currentWaypoints = []; // Stores objects: { lat, lng, label }
-        let currentRouteGeometry = []; 
+        let currentWaypoints = []; // { lat, lng, label, note }
+        let currentTextBoxes = []; // { id, lat, lng, text }
+        let currentRouteGeometry = [];
         let waypointMarkers = [];
+        let textBoxMarkers = [];
         let memoryStorage = [];
+        let isPlacingTextBox = false;
+        let editingRouteId = null;
+        let toastTimer = null;
+
+        function showToast(message) {
+            const el = document.getElementById('toast-banner');
+            if (!el) return;
+            el.textContent = message;
+            el.classList.add('visible');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.remove('visible');
+            }, 2600);
+        }
 
         function getSavedDrives() {
             try {
@@ -320,6 +643,47 @@
             return String(str).replace(/[&<>"']/g, m => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
             })[m]);
+        }
+
+        function measureInputWidth(text, placeholder) {
+            const sample = (text && text.length > 0) ? text : (placeholder || 'Point 1');
+            const px = Math.min(180, Math.max(54, sample.length * 7.5 + 18));
+            return px + 'px';
+        }
+
+        function autoResizeTextarea(textarea) {
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(140, Math.max(46, textarea.scrollHeight)) + 'px';
+        }
+
+        function stopMarkerEventPropagation(el) {
+            if (!el) return;
+            ['mousedown', 'pointerdown', 'touchstart', 'click', 'dblclick'].forEach(evt => {
+                el.addEventListener(evt, (e) => {
+                    e.stopPropagation();
+                });
+            });
+        }
+
+        function setTextBoxPlacementMode(active) {
+            isPlacingTextBox = active;
+            const btn = document.getElementById('add-textbox-btn');
+            const mapEl = document.getElementById('map');
+            const hintEl = document.getElementById('mode-hint');
+
+            if (btn) {
+                btn.classList.toggle('active-mode', active);
+                btn.textContent = active ? 'Cancel Text Box' : '+ Text Box';
+            }
+            if (mapEl) {
+                mapEl.classList.toggle('placing-textbox', active);
+            }
+            if (hintEl) {
+                hintEl.textContent = active
+                    ? 'Tap anywhere on the map to drop an editable text box.'
+                    : 'Tap map to drop waypoints. Edit names directly on map badges or in the sidebar. Drag badges to move.';
+            }
         }
 
         function initRouting() {
@@ -353,12 +717,43 @@
         }
 
         function createIconForWaypoint(wp, index) {
-            const labelText = wp.label ? wp.label : `Point ${index + 1}`;
+            const placeholderText = `Point ${index + 1}`;
+            const widthStyle = measureInputWidth(wp.label, placeholderText);
             return L.divIcon({
                 className: '',
-                html: `<div class="waypoint-badge"><span class="number">${index + 1}</span><span>${escapeHtml(labelText)}</span></div>`,
-                iconSize: [null, 28],
-                iconAnchor: [14, 14]
+                html: `
+                    <div class="waypoint-badge">
+                        <span class="number" title="Drag to move">${index + 1}</span>
+                        <input
+                            type="text"
+                            class="waypoint-map-input"
+                            value="${escapeHtml(wp.label || '')}"
+                            placeholder="${placeholderText}"
+                            style="width: ${widthStyle};"
+                            aria-label="Waypoint ${index + 1} name"
+                        />
+                        <button type="button" class="wp-map-del" title="Remove waypoint">✕</button>
+                    </div>
+                `,
+                iconSize: [null, 30],
+                iconAnchor: [15, 15]
+            });
+        }
+
+        function createIconForTextBox(tb) {
+            return L.divIcon({
+                className: '',
+                html: `
+                    <div class="map-textbox-card">
+                        <div class="map-textbox-header" title="Drag to move text box">
+                            <span class="map-textbox-title">⠿ Note</span>
+                            <button type="button" class="map-textbox-del" title="Remove text box">✕</button>
+                        </div>
+                        <textarea class="map-textbox-input" placeholder="Type map note...">${escapeHtml(tb.text || '')}</textarea>
+                    </div>
+                `,
+                iconSize: [196, null],
+                iconAnchor: [98, 12]
             });
         }
 
@@ -368,32 +763,169 @@
             syncMarkersToWaypoints();
         }
 
+        function removeTextBoxAtIndex(index) {
+            currentTextBoxes.splice(index, 1);
+            syncTextBoxMarkers();
+        }
+
+        function renderSidebarWaypointList() {
+            const section = document.getElementById('active-waypoints-section');
+            const list = document.getElementById('waypoint-editor-list');
+            if (!section || !list) return;
+
+            if (currentWaypoints.length === 0) {
+                section.style.display = 'none';
+                list.innerHTML = '';
+                return;
+            }
+
+            section.style.display = 'block';
+            list.innerHTML = '';
+
+            currentWaypoints.forEach((wp, idx) => {
+                const row = document.createElement('div');
+                row.className = 'wp-row';
+                row.innerHTML = `
+                    <div class="wp-row-top">
+                        <span class="wp-num">${idx + 1}</span>
+                        <input type="text" class="wp-label-input" value="${escapeHtml(wp.label || '')}" placeholder="Point ${idx + 1} (e.g. Start, Control 1)" data-wp-idx="${idx}" />
+                        <button type="button" class="wp-del-btn" title="Remove waypoint">✕</button>
+                    </div>
+                    <input type="text" class="wp-note-input" value="${escapeHtml(wp.note || '')}" placeholder="Waypoint note or instruction..." data-wp-note-idx="${idx}" />
+                `;
+
+                const sidebarInput = row.querySelector('.wp-label-input');
+                const noteInput = row.querySelector('.wp-note-input');
+                const delBtn = row.querySelector('.wp-del-btn');
+
+                sidebarInput.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    currentWaypoints[idx].label = val;
+                    const marker = waypointMarkers[idx];
+                    if (marker && marker.getElement()) {
+                        const mapInput = marker.getElement().querySelector('.waypoint-map-input');
+                        if (mapInput) {
+                            mapInput.value = val;
+                            mapInput.style.width = measureInputWidth(val, `Point ${idx + 1}`);
+                        }
+                    }
+                });
+
+                noteInput.addEventListener('input', (e) => {
+                    currentWaypoints[idx].note = e.target.value;
+                });
+
+                delBtn.addEventListener('click', () => {
+                    removeWaypointAtIndex(idx);
+                });
+
+                list.appendChild(row);
+            });
+        }
+
+        function renderSidebarTextBoxList() {
+            const section = document.getElementById('active-textboxes-section');
+            const list = document.getElementById('textbox-editor-list');
+            if (!section || !list) return;
+
+            if (currentTextBoxes.length === 0) {
+                section.style.display = 'none';
+                list.innerHTML = '';
+                return;
+            }
+
+            section.style.display = 'block';
+            list.innerHTML = '';
+
+            currentTextBoxes.forEach((tb, idx) => {
+                const row = document.createElement('div');
+                row.className = 'wp-row';
+                row.innerHTML = `
+                    <div class="tb-row-actions">
+                        <span class="tb-badge-num">Note ${idx + 1}</span>
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <button type="button" class="secondary tb-locate-btn" title="Center map on this text box">Locate</button>
+                            <button type="button" class="wp-del-btn" title="Remove text box">✕</button>
+                        </div>
+                    </div>
+                    <textarea class="tb-sidebar-input" data-tb-idx="${idx}" placeholder="Type map note...">${escapeHtml(tb.text || '')}</textarea>
+                `;
+
+                const sidebarTextarea = row.querySelector('.tb-sidebar-input');
+                const locateBtn = row.querySelector('.tb-locate-btn');
+                const delBtn = row.querySelector('.wp-del-btn');
+
+                sidebarTextarea.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    currentTextBoxes[idx].text = val;
+                    const marker = textBoxMarkers[idx];
+                    if (marker && marker.getElement()) {
+                        const mapTextarea = marker.getElement().querySelector('.map-textbox-input');
+                        if (mapTextarea) {
+                            mapTextarea.value = val;
+                            autoResizeTextarea(mapTextarea);
+                        }
+                    }
+                });
+
+                locateBtn.addEventListener('click', () => {
+                    map.panTo(L.latLng(tb.lat, tb.lng));
+                    const marker = textBoxMarkers[idx];
+                    if (marker && marker.getElement()) {
+                        const mapTextarea = marker.getElement().querySelector('.map-textbox-input');
+                        if (mapTextarea) mapTextarea.focus();
+                    }
+                });
+
+                delBtn.addEventListener('click', () => {
+                    removeTextBoxAtIndex(idx);
+                });
+
+                list.appendChild(row);
+            });
+        }
+
         function addMarkerForPoint(wp, index) {
             const latlng = L.latLng(wp.lat, wp.lng);
             const icon = createIconForWaypoint(wp, index);
             const marker = L.marker(latlng, { draggable: true, icon }).addTo(map);
 
-            const popupContent = document.createElement('div');
-            popupContent.className = 'marker-popup';
-            popupContent.innerHTML = `
-                <input type="text" value="${escapeHtml(wp.label || '')}" placeholder="Label (e.g. Start, Control 1)" />
-                <button type="button">Delete Waypoint</button>
-            `;
+            marker.on('add', () => {
+                const el = marker.getElement();
+                if (!el) return;
+                L.DomEvent.disableClickPropagation(el);
+                L.DomEvent.disableScrollPropagation(el);
 
-            const inputEl = popupContent.querySelector('input');
-            const deleteBtn = popupContent.querySelector('button');
+                const mapInput = el.querySelector('.waypoint-map-input');
+                const mapDelBtn = el.querySelector('.wp-map-del');
 
-            inputEl.addEventListener('input', (e) => {
-                currentWaypoints[index].label = e.target.value;
-                marker.setIcon(createIconForWaypoint(currentWaypoints[index], index));
+                if (mapInput) {
+                    stopMarkerEventPropagation(mapInput);
+                    mapInput.addEventListener('focus', () => {
+                        if (marker.dragging) marker.dragging.disable();
+                    });
+                    mapInput.addEventListener('blur', () => {
+                        if (marker.dragging) marker.dragging.enable();
+                    });
+                    mapInput.addEventListener('input', (e) => {
+                        const idx = waypointMarkers.indexOf(marker);
+                        if (idx === -1) return;
+                        const val = e.target.value;
+                        currentWaypoints[idx].label = val;
+                        mapInput.style.width = measureInputWidth(val, `Point ${idx + 1}`);
+                        const sidebarInput = document.querySelector(`.wp-label-input[data-wp-idx="${idx}"]`);
+                        if (sidebarInput) sidebarInput.value = val;
+                    });
+                }
+
+                if (mapDelBtn) {
+                    stopMarkerEventPropagation(mapDelBtn);
+                    mapDelBtn.addEventListener('click', () => {
+                        const idx = waypointMarkers.indexOf(marker);
+                        if (idx !== -1) removeWaypointAtIndex(idx);
+                    });
+                }
             });
-
-            deleteBtn.addEventListener('click', () => {
-                map.closePopup();
-                removeWaypointAtIndex(index);
-            });
-
-            marker.bindPopup(popupContent);
 
             marker.on('dragend', () => {
                 const pos = marker.getLatLng();
@@ -409,6 +941,65 @@
             return marker;
         }
 
+        function addMarkerForTextBox(tb, focusNew) {
+            const latlng = L.latLng(tb.lat, tb.lng);
+            const icon = createIconForTextBox(tb);
+            const marker = L.marker(latlng, { draggable: true, icon }).addTo(map);
+
+            marker.on('add', () => {
+                const el = marker.getElement();
+                if (!el) return;
+                L.DomEvent.disableClickPropagation(el);
+                L.DomEvent.disableScrollPropagation(el);
+
+                const mapTextarea = el.querySelector('.map-textbox-input');
+                const mapDelBtn = el.querySelector('.map-textbox-del');
+
+                if (mapTextarea) {
+                    autoResizeTextarea(mapTextarea);
+                    stopMarkerEventPropagation(mapTextarea);
+                    mapTextarea.addEventListener('focus', () => {
+                        if (marker.dragging) marker.dragging.disable();
+                    });
+                    mapTextarea.addEventListener('blur', () => {
+                        if (marker.dragging) marker.dragging.enable();
+                    });
+                    mapTextarea.addEventListener('input', (e) => {
+                        const idx = textBoxMarkers.indexOf(marker);
+                        if (idx === -1) return;
+                        const val = e.target.value;
+                        currentTextBoxes[idx].text = val;
+                        autoResizeTextarea(mapTextarea);
+                        const sidebarInput = document.querySelector(`.tb-sidebar-input[data-tb-idx="${idx}"]`);
+                        if (sidebarInput) sidebarInput.value = val;
+                    });
+                    if (focusNew) {
+                        setTimeout(() => mapTextarea.focus(), 30);
+                    }
+                }
+
+                if (mapDelBtn) {
+                    stopMarkerEventPropagation(mapDelBtn);
+                    mapDelBtn.addEventListener('click', () => {
+                        const idx = textBoxMarkers.indexOf(marker);
+                        if (idx !== -1) removeTextBoxAtIndex(idx);
+                    });
+                }
+            });
+
+            marker.on('dragend', () => {
+                const pos = marker.getLatLng();
+                const idx = textBoxMarkers.indexOf(marker);
+                if (idx !== -1) {
+                    currentTextBoxes[idx].lat = pos.lat;
+                    currentTextBoxes[idx].lng = pos.lng;
+                }
+            });
+
+            textBoxMarkers.push(marker);
+            return marker;
+        }
+
         function clearMarkers() {
             waypointMarkers.forEach(m => {
                 try { map.removeLayer(m); } catch (e) {}
@@ -416,47 +1007,86 @@
             waypointMarkers = [];
         }
 
+        function clearTextBoxMarkers() {
+            textBoxMarkers.forEach(m => {
+                try { map.removeLayer(m); } catch (e) {}
+            });
+            textBoxMarkers = [];
+        }
+
         function syncMarkersToWaypoints() {
             clearMarkers();
             currentWaypoints.forEach((wp, idx) => addMarkerForPoint(wp, idx));
+            renderSidebarWaypointList();
+        }
+
+        function syncTextBoxMarkers(focusLast) {
+            clearTextBoxMarkers();
+            currentTextBoxes.forEach((tb, idx) => {
+                const shouldFocus = Boolean(focusLast && idx === currentTextBoxes.length - 1);
+                addMarkerForTextBox(tb, shouldFocus);
+            });
+            renderSidebarTextBoxList();
         }
 
         function addWaypoint(latlng) {
             initRouting();
-            // Automatically suggest default labels for first and last points if desired, e.g., Start / Finish
             let defaultLabel = '';
             if (currentWaypoints.length === 0) defaultLabel = 'Start';
-            
-            currentWaypoints.push({ lat: latlng.lat, lng: latlng.lng, label: defaultLabel });
-            
-            // If we just added a second or subsequent point, make sure the last one can be 'Finish' if preferred, or leave blank
-            if (currentWaypoints.length === 2 && currentWaypoints[1].label === '') {
-                currentWaypoints[1].label = 'Finish';
-            }
+            else if (currentWaypoints.length === 1) defaultLabel = 'Finish';
 
+            currentWaypoints.push({ lat: latlng.lat, lng: latlng.lng, label: defaultLabel, note: '' });
             syncMarkersToWaypoints();
             updateRoutingWaypoints();
         }
 
+        function addTextBox(latlng) {
+            currentTextBoxes.push({
+                id: 'tb_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                lat: latlng.lat,
+                lng: latlng.lng,
+                text: ''
+            });
+            syncTextBoxMarkers(true);
+            setTextBoxPlacementMode(false);
+        }
+
         function saveCurrentRoute() {
             const nameInput = document.getElementById('route-name');
+            const notesInput = document.getElementById('route-notes');
             const name = nameInput ? nameInput.value.trim() : '';
+            const notes = notesInput ? notesInput.value.trim() : '';
 
             if (!name) {
-                alert('Please enter a route name.');
+                showToast('Please enter a route name.');
+                if (nameInput) nameInput.focus();
                 return;
             }
 
             if (!Array.isArray(currentWaypoints) || currentWaypoints.length < 2) {
-                alert('Add at least two waypoints on the map before saving.');
+                showToast('Add at least two waypoints on the map before saving.');
                 return;
             }
 
             const routeData = {
                 id: 'route_' + Date.now(),
                 name: name,
-                waypoints: currentWaypoints.map(wp => ({ lat: Number(wp.lat), lng: Number(wp.lng), label: wp.label || '' })),
-                geometry: currentRouteGeometry && currentRouteGeometry.length > 0 ? currentRouteGeometry : currentWaypoints.map(wp => ({ lat: Number(wp.lat), lng: Number(wp.lng) })),
+                notes: notes,
+                waypoints: currentWaypoints.map(wp => ({
+                    lat: Number(wp.lat),
+                    lng: Number(wp.lng),
+                    label: wp.label || '',
+                    note: wp.note || ''
+                })),
+                textBoxes: currentTextBoxes.map(tb => ({
+                    id: tb.id,
+                    lat: Number(tb.lat),
+                    lng: Number(tb.lng),
+                    text: tb.text || ''
+                })),
+                geometry: currentRouteGeometry && currentRouteGeometry.length > 0
+                    ? currentRouteGeometry
+                    : currentWaypoints.map(wp => ({ lat: Number(wp.lat), lng: Number(wp.lng) })),
                 createdAt: new Date().toISOString()
             };
 
@@ -464,9 +1094,9 @@
             existing.push(routeData);
             setSavedDrives(existing);
 
-            if (nameInput) nameInput.value = '';
             clearCurrentMap();
             loadSavedRoutes();
+            showToast(`Saved "${name}"`);
         }
 
         function loadSavedRoutes() {
@@ -484,15 +1114,38 @@
             routes.forEach(route => {
                 const card = document.createElement('div');
                 card.className = 'route-card';
-                card.innerHTML = `
-                    <h3>${escapeHtml(route.name)}</h3>
-                    <p>${route.waypoints.length} Waypoints</p>
-                    <div class="card-actions">
-                        <button class="secondary" data-action="view" data-id="${route.id}">View</button>
-                        <button class="secondary" data-action="export" data-id="${route.id}">Export GPX</button>
-                        <button data-action="delete" data-id="${route.id}">Delete</button>
-                    </div>
-                `;
+                const tbCount = Array.isArray(route.textBoxes) ? route.textBoxes.length : 0;
+                const summaryText = tbCount > 0
+                    ? `${route.waypoints.length} Waypoints · ${tbCount} Text Box${tbCount === 1 ? '' : 'es'}`
+                    : `${route.waypoints.length} Waypoints`;
+
+                if (editingRouteId === route.id) {
+                    card.innerHTML = `
+                        <div class="route-edit-fields">
+                            <input type="text" class="edit-route-name" value="${escapeHtml(route.name)}" placeholder="Route name..." />
+                            <textarea class="edit-route-notes" placeholder="Route notes...">${escapeHtml(route.notes || '')}</textarea>
+                        </div>
+                        <div class="card-actions">
+                            <button data-action="save-edit" data-id="${route.id}">Save</button>
+                            <button class="secondary" data-action="cancel-edit" data-id="${route.id}">Cancel</button>
+                        </div>
+                    `;
+                } else {
+                    const notesHtml = route.notes
+                        ? `<div class="route-card-notes">${escapeHtml(route.notes)}</div>`
+                        : '';
+                    card.innerHTML = `
+                        <h3>${escapeHtml(route.name)}</h3>
+                        <p>${summaryText}</p>
+                        ${notesHtml}
+                        <div class="card-actions">
+                            <button class="secondary" data-action="view" data-id="${route.id}">View</button>
+                            <button class="secondary" data-action="edit" data-id="${route.id}">Edit</button>
+                            <button class="secondary" data-action="export" data-id="${route.id}">Export GPX</button>
+                            <button class="danger" data-action="delete" data-id="${route.id}">Delete</button>
+                        </div>
+                    `;
+                }
                 listContainer.appendChild(card);
             });
 
@@ -501,6 +1154,33 @@
                     const act = this.getAttribute('data-action');
                     const id = this.getAttribute('data-id');
                     if (act === 'view') displayRoute(id);
+                    else if (act === 'edit') {
+                        editingRouteId = id;
+                        loadSavedRoutes();
+                    }
+                    else if (act === 'cancel-edit') {
+                        editingRouteId = null;
+                        loadSavedRoutes();
+                    }
+                    else if (act === 'save-edit') {
+                        const card = this.closest('.route-card');
+                        const newName = card.querySelector('.edit-route-name').value.trim();
+                        const newNotes = card.querySelector('.edit-route-notes').value.trim();
+                        if (!newName) {
+                            showToast('Route name cannot be empty.');
+                            return;
+                        }
+                        const allRoutes = getSavedDrives();
+                        const target = allRoutes.find(r => r.id === id);
+                        if (target) {
+                            target.name = newName;
+                            target.notes = newNotes;
+                            setSavedDrives(allRoutes);
+                        }
+                        editingRouteId = null;
+                        loadSavedRoutes();
+                        showToast('Route details updated.');
+                    }
                     else if (act === 'export') exportGPX(id);
                     else if (act === 'delete') deleteRoute(id);
                 });
@@ -512,16 +1192,39 @@
             const route = routes.find(r => r.id === id);
             if (!route) return;
 
-            currentWaypoints = route.waypoints.map(w => ({ lat: w.lat, lng: w.lng, label: w.label || '' }));
+            clearCurrentMap();
+
+            const nameInput = document.getElementById('route-name');
+            const notesInput = document.getElementById('route-notes');
+            if (nameInput) nameInput.value = route.name || '';
+            if (notesInput) notesInput.value = route.notes || '';
+
+            currentWaypoints = (route.waypoints || []).map(w => ({
+                lat: w.lat,
+                lng: w.lng,
+                label: w.label || '',
+                note: w.note || ''
+            }));
+            currentTextBoxes = (route.textBoxes || []).map((tb, idx) => ({
+                id: tb.id || ('tb_' + Date.now() + '_' + idx),
+                lat: tb.lat,
+                lng: tb.lng,
+                text: tb.text || ''
+            }));
             currentRouteGeometry = route.geometry || [];
+
             syncMarkersToWaypoints();
+            syncTextBoxMarkers(false);
 
             if (!routingControl) initRouting();
             updateRoutingWaypoints();
 
-            const leafletPts = currentWaypoints.map(w => L.latLng(w.lat, w.lng));
-            if (leafletPts.length > 0) {
-                map.fitBounds(L.latLngBounds(leafletPts), { padding: [50, 50] });
+            const allCoords = [
+                ...currentWaypoints.map(w => L.latLng(w.lat, w.lng)),
+                ...currentTextBoxes.map(tb => L.latLng(tb.lat, tb.lng))
+            ];
+            if (allCoords.length > 0) {
+                map.fitBounds(L.latLngBounds(allCoords), { padding: [50, 50] });
             }
         }
 
@@ -529,8 +1232,10 @@
             let routes = getSavedDrives();
             routes = routes.filter(r => r.id !== id);
             setSavedDrives(routes);
+            if (editingRouteId === id) editingRouteId = null;
             loadSavedRoutes();
             clearCurrentMap();
+            showToast('Route deleted.');
         }
 
         function exportGPX(id) {
@@ -538,23 +1243,41 @@
             const route = routes.find(r => r.id === id);
             if (!route) return;
 
-            const pointsToExport = (route.geometry && route.geometry.length > 0) 
-                ? route.geometry 
+            const pointsToExport = (route.geometry && route.geometry.length > 0)
+                ? route.geometry
                 : route.waypoints;
 
-            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-            gpxContent += `<gpx version="1.1" creator="RouteCraft" xmlns="http://www.topografix.com/GPX/1/1">\n`;
-            
+            let gpxContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            gpxContent += '<gpx version="1.1" creator="RouteCraft" xmlns="http://www.topografix.com/GPX/1/1">\n';
+
             route.waypoints.forEach((pt, index) => {
                 const wptName = pt.label ? pt.label : `Waypoint ${index + 1}`;
-                gpxContent += `  <wpt lat="${pt.lat}" lon="${pt.lng}">\n    <name>${escapeHtml(wptName)}</name>\n  </wpt>\n`;
+                gpxContent += `  <wpt lat="${pt.lat}" lon="${pt.lng}">\n    <name>${escapeHtml(wptName)}</name>\n`;
+                if (pt.note) {
+                    gpxContent += `    <desc>${escapeHtml(pt.note)}</desc>\n`;
+                }
+                gpxContent += '  </wpt>\n';
             });
 
-            gpxContent += `  <trk>\n    <name>${escapeHtml(route.name)}</name>\n    <trkseg>\n`;
+            if (Array.isArray(route.textBoxes)) {
+                route.textBoxes.forEach((tb, index) => {
+                    gpxContent += `  <wpt lat="${tb.lat}" lon="${tb.lng}">\n`;
+                    gpxContent += `    <name>Note ${index + 1}</name>\n`;
+                    gpxContent += `    <desc>${escapeHtml(tb.text || '')}</desc>\n`;
+                    gpxContent += '    <type>routecraft-textbox</type>\n';
+                    gpxContent += '  </wpt>\n';
+                });
+            }
+
+            gpxContent += `  <trk>\n    <name>${escapeHtml(route.name)}</name>\n`;
+            if (route.notes) {
+                gpxContent += `    <desc>${escapeHtml(route.notes)}</desc>\n`;
+            }
+            gpxContent += '    <trkseg>\n';
             pointsToExport.forEach(pt => {
                 gpxContent += `      <trkpt lat="${pt.lat}" lon="${pt.lng}"></trkpt>\n`;
             });
-            gpxContent += `    </trkseg>\n  </trk>\n</gpx>`;
+            gpxContent += '    </trkseg>\n  </trk>\n</gpx>';
 
             const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
             const url = URL.createObjectURL(blob);
@@ -578,25 +1301,46 @@
 
                 const wpts = xmlDoc.querySelectorAll('wpt');
                 const trkpts = xmlDoc.querySelectorAll('trkpt, rtept');
-                
+
                 if ((!trkpts || trkpts.length === 0) && (!wpts || wpts.length === 0)) {
-                    alert('No valid waypoints or track points found in this GPX file.');
+                    showToast('No valid waypoints or track points found in this GPX file.');
                     return;
                 }
 
-                const nameNode = xmlDoc.querySelector('name');
-                const defaultName = nameNode ? nameNode.textContent.trim() : file.name.replace(/\.[^/.]+$/, "");
+                const trkNameNode = xmlDoc.querySelector('trk > name') || xmlDoc.querySelector('metadata > name') || xmlDoc.querySelector('name');
+                const trkDescNode = xmlDoc.querySelector('trk > desc');
+                const defaultName = trkNameNode ? trkNameNode.textContent.trim() : file.name.replace(/\.[^/.]+$/, '');
+                const defaultNotes = trkDescNode ? trkDescNode.textContent.trim() : '';
 
                 let importedWaypoints = [];
+                let importedTextBoxes = [];
+
                 if (wpts && wpts.length > 0) {
-                    importedWaypoints = Array.from(wpts).map(wpt => {
+                    Array.from(wpts).forEach((wpt, idx) => {
+                        const lat = parseFloat(wpt.getAttribute('lat'));
+                        const lng = parseFloat(wpt.getAttribute('lon'));
+                        if (isNaN(lat) || isNaN(lng)) return;
+
+                        const typeEl = wpt.querySelector('type');
                         const nameEl = wpt.querySelector('name');
-                        return {
-                            lat: parseFloat(wpt.getAttribute('lat')),
-                            lng: parseFloat(wpt.getAttribute('lon')),
-                            label: nameEl ? nameEl.textContent.trim() : ''
-                        };
-                    }).filter(pt => !isNaN(pt.lat) && !isNaN(pt.lng));
+                        const descEl = wpt.querySelector('desc');
+
+                        if (typeEl && typeEl.textContent.trim() === 'routecraft-textbox') {
+                            importedTextBoxes.push({
+                                id: 'tb_' + Date.now() + '_' + idx,
+                                lat,
+                                lng,
+                                text: descEl ? descEl.textContent.trim() : (nameEl ? nameEl.textContent.trim() : '')
+                            });
+                        } else {
+                            importedWaypoints.push({
+                                lat,
+                                lng,
+                                label: nameEl ? nameEl.textContent.trim() : '',
+                                note: descEl ? descEl.textContent.trim() : ''
+                            });
+                        }
+                    });
                 }
 
                 if (importedWaypoints.length < 2 && trkpts && trkpts.length > 0) {
@@ -612,31 +1356,51 @@
                     importedWaypoints = pts.map((p, idx) => ({
                         lat: p.lat,
                         lng: p.lng,
-                        label: idx === 0 ? 'Start' : (idx === pts.length - 1 ? 'Finish' : '')
+                        label: idx === 0 ? 'Start' : (idx === pts.length - 1 ? 'Finish' : ''),
+                        note: ''
                     }));
                 }
 
                 clearCurrentMap();
                 document.getElementById('route-name').value = defaultName;
+                document.getElementById('route-notes').value = defaultNotes;
                 currentWaypoints = importedWaypoints;
-                
+                currentTextBoxes = importedTextBoxes;
+
                 if (!routingControl) initRouting();
                 updateRoutingWaypoints();
                 syncMarkersToWaypoints();
+                syncTextBoxMarkers(false);
 
-                const leafletPts = currentWaypoints.map(w => L.latLng(w.lat, w.lng));
-                if (leafletPts.length > 0) {
-                    map.fitBounds(L.latLngBounds(leafletPts), { padding: [50, 50] });
+                const allCoords = [
+                    ...currentWaypoints.map(w => L.latLng(w.lat, w.lng)),
+                    ...currentTextBoxes.map(tb => L.latLng(tb.lat, tb.lng))
+                ];
+                if (allCoords.length > 0) {
+                    map.fitBounds(L.latLngBounds(allCoords), { padding: [50, 50] });
                 }
+                showToast(`Imported "${defaultName}"`);
             };
             reader.readAsText(file);
         }
 
         function clearCurrentMap() {
             currentWaypoints = [];
+            currentTextBoxes = [];
             currentRouteGeometry = [];
+            setTextBoxPlacementMode(false);
+
+            const nameInput = document.getElementById('route-name');
+            const notesInput = document.getElementById('route-notes');
+            if (nameInput) nameInput.value = '';
+            if (notesInput) notesInput.value = '';
+
             if (routingControl) routingControl.setWaypoints([]);
             clearMarkers();
+            clearTextBoxMarkers();
+            renderSidebarWaypointList();
+            renderSidebarTextBoxList();
+
             map.eachLayer(function(layer) {
                 if (layer instanceof L.Polyline && !(layer instanceof L.TileLayer)) {
                     try { map.removeLayer(layer); } catch (e) {}
@@ -664,15 +1428,25 @@
             loadSavedRoutes();
 
             map.on('click', function(e) {
-                addWaypoint(e.latlng);
+                if (isPlacingTextBox) {
+                    addTextBox(e.latlng);
+                } else {
+                    addWaypoint(e.latlng);
+                }
             });
 
             document.getElementById('save-btn').addEventListener('click', saveCurrentRoute);
             document.getElementById('clear-btn').addEventListener('click', clearCurrentMap);
+            document.getElementById('add-textbox-btn').addEventListener('click', () => {
+                setTextBoxPlacementMode(!isPlacingTextBox);
+            });
 
             const fileInput = document.getElementById('gpx-file-input');
             document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => handleGPXImport(e.target.files[0]));
+            fileInput.addEventListener('change', (e) => {
+                handleGPXImport(e.target.files[0]);
+                e.target.value = '';
+            });
 
             document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
             document.getElementById('floating-menu-btn').addEventListener('click', toggleSidebar);
