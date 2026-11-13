@@ -385,16 +385,42 @@
             white-space: nowrap;
         }
 
+        .routing-controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+
+        .routing-controls-group select {
+            padding: 5px 8px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.82rem;
+            font-weight: 600;
+            max-width: 158px;
+            cursor: pointer;
+        }
+
         .snap-toggle-label {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.8rem;
+            gap: 5px;
+            font-size: 0.78rem;
             font-weight: 600;
             color: #0f172a;
             cursor: pointer;
             white-space: nowrap;
             user-select: none;
+        }
+
+        .snap-toggle-label.is-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
         .snap-toggle-label input[type="checkbox"] {
@@ -501,6 +527,57 @@
             display: flex;
             flex-direction: column;
             gap: 3px;
+        }
+
+        .wp-icon-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .wp-icon-select {
+            flex: 1;
+            min-width: 0;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fafafa;
+            color: #1f2937;
+            cursor: pointer;
+        }
+
+        .wp-icon-select:focus {
+            outline: none;
+            border-color: #2b8ed6;
+            box-shadow: 0 0 0 2px rgba(43, 142, 214, 0.18);
+        }
+
+        .wp-direct-field {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .wp-direct-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .wp-direct-label input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            accent-color: #2b8ed6;
+            cursor: pointer;
         }
 
         .wp-note-label {
@@ -1064,6 +1141,13 @@
             user-select: none;
         }
 
+        .waypoint-badge .wp-badge-icon {
+            font-size: 13px;
+            line-height: 1;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
         .waypoint-map-input {
             width: 64px;
             min-width: 44px;
@@ -1282,7 +1366,8 @@
 
         body.dark-mode input,
         body.dark-mode textarea,
-        body.dark-mode .map-style-controls select {
+        body.dark-mode .map-style-controls select,
+        body.dark-mode .routing-controls-group select {
             background: #1e293b;
             border-color: #334155;
             color: #f1f5f9;
@@ -1341,6 +1426,7 @@
         body.dark-mode .hint,
         body.dark-mode .section-title,
         body.dark-mode .wp-note-label,
+        body.dark-mode .wp-direct-label,
         body.dark-mode .route-card p {
             color: #94a3b8;
         }
@@ -1374,10 +1460,16 @@
         }
 
         body.dark-mode .wp-note-textarea,
-        body.dark-mode .route-card .route-card-notes {
+        body.dark-mode .route-card .route-card-notes,
+        body.dark-mode .wp-icon-select {
             background: #0f172a !important;
             border-color: #334155;
             color: #cbd5e1;
+        }
+
+        body.dark-mode .wp-icon-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
         }
 
         body.dark-mode .wp-del-btn {
@@ -1696,7 +1788,7 @@
                     <select id="map-style-select" aria-label="Map tile style">
                         <option value="landranger" selected>OS Landranger Topo</option>
                         <option value="osm">Standard Street (OSM)</option>
-                        <option value="cyclosm">Trails &amp; Contours</option>
+                        <option value="cyclosm">Topo &amp; Contours</option>
                         <option value="dark">Dark Matter (Night)</option>
                     </select>
                     <label class="os-grid-toggle-label" title="Show British National Grid (OSGB36) 1km squares">
@@ -1706,13 +1798,20 @@
                 </div>
             </div>
             <div class="routing-options-row">
-                <label for="snap-roads-toggle">Road Snapping</label>
-                <label class="snap-toggle-label" title="Automatically snap dropped and dragged waypoints onto the nearest road path">
-                    <input type="checkbox" id="snap-roads-toggle" checked />
-                    Auto-snap to roads
-                </label>
+                <label for="routing-mode-select">Routing</label>
+                <div class="routing-controls-group">
+                    <select id="routing-mode-select" aria-label="Routing mode">
+                        <option value="rally" selected>Rally / Stage Roads</option>
+                        <option value="roads">Public Roads (Car)</option>
+                        <option value="direct">Direct (Exact)</option>
+                    </select>
+                    <label id="snap-toggle-label" class="snap-toggle-label" title="Snap dropped and dragged waypoints onto the nearest road">
+                        <input type="checkbox" id="snap-roads-toggle" checked />
+                        Snap
+                    </label>
+                </div>
             </div>
-            <p class="hint" id="mode-hint">Tap near roads to drop auto-snapped waypoints. Edit names on map badges or below. Drag badges to move.</p>
+            <p class="hint" id="mode-hint">Rally / Stage Roads (Valhalla): follows tarmac, private/MOD &amp; forestry stage roads.</p>
             <div class="controls-btn-grid">
                 <button id="undo-btn" type="button" class="secondary" disabled title="Undo last route change (Ctrl+Z)">↶ Undo</button>
                 <button id="redo-btn" type="button" class="secondary" disabled title="Redo route change (Ctrl+Y)">↷ Redo</button>
@@ -1810,16 +1909,125 @@
 
     <script>
         let map = null;
-        let osrmRouter = null;
         let routeLayerGroup = null;
         let routePolylineLayers = [];
         let routeRequestSeq = 0;
-        let currentWaypoints = []; // { lat, lng, label, notes }
+        let currentWaypoints = []; // { lat, lng, label, notes, icon }
         let currentTextBoxes = []; // { id, lat, lng, text }
         let currentRouteGeometry = [];
         let currentRouteDistanceMeters = 0;
         const DEFAULT_ROUTE_COLOR = '#2b8ed6';
         let currentRouteColor = DEFAULT_ROUTE_COLOR;
+
+        const WAYPOINT_ICONS = {
+            default: {
+                id: 'default',
+                label: 'Waypoint',
+                emoji: '📍',
+                gpxSym: 'Flag, Blue',
+                gpxType: 'waypoint',
+                gpxIcon: 'pin-waypoint',
+                color: '#2b8ed6',
+                garminColor: 'Blue'
+            },
+            start: {
+                id: 'start',
+                label: 'Start',
+                emoji: '🟢',
+                gpxSym: 'Flag, Green',
+                gpxType: 'start',
+                gpxIcon: 'flag-start',
+                color: '#16a34a',
+                garminColor: 'Green'
+            },
+            control: {
+                id: 'control',
+                label: 'Control',
+                emoji: '⏱️',
+                gpxSym: 'Control Point',
+                gpxType: 'control',
+                gpxIcon: 'control',
+                color: '#7c3aed',
+                garminColor: 'Magenta'
+            },
+            finish: {
+                id: 'finish',
+                label: 'Finish',
+                emoji: '🏁',
+                gpxSym: 'Flag, Red',
+                gpxType: 'finish',
+                gpxIcon: 'flag-finish',
+                color: '#dc2626',
+                garminColor: 'Red'
+            },
+            hazard: {
+                id: 'hazard',
+                label: 'Caution',
+                emoji: '⚠️',
+                gpxSym: 'Danger Area',
+                gpxType: 'hazard',
+                gpxIcon: 'caution',
+                color: '#d97706',
+                garminColor: 'DarkYellow'
+            },
+            fuel: {
+                id: 'fuel',
+                label: 'Fuel / Stop',
+                emoji: '⛽',
+                gpxSym: 'Gas Station',
+                gpxType: 'fuel',
+                gpxIcon: 'fuel',
+                color: '#0891b2',
+                garminColor: 'Cyan'
+            },
+            viewpoint: {
+                id: 'viewpoint',
+                label: 'Scenic / POI',
+                emoji: '📷',
+                gpxSym: 'Scenic Area',
+                gpxType: 'scenic',
+                gpxIcon: 'viewpoint',
+                color: '#059669',
+                garminColor: 'DarkGreen'
+            }
+        };
+
+        function normalizeWaypointIconId(iconId) {
+            if (typeof iconId === 'string') {
+                const key = iconId.trim().toLowerCase();
+                if (Object.prototype.hasOwnProperty.call(WAYPOINT_ICONS, key)) {
+                    return key;
+                }
+            }
+            return 'default';
+        }
+
+        function getWaypointIconMeta(wp) {
+            const key = normalizeWaypointIconId(wp && wp.icon);
+            return WAYPOINT_ICONS[key] || WAYPOINT_ICONS.default;
+        }
+
+        function inferWaypointIconFromGpx(wptEl) {
+            if (!wptEl) return 'default';
+            const getText = (sel) => {
+                const el = wptEl.querySelector(sel);
+                return el && el.textContent ? el.textContent.trim().toLowerCase() : '';
+            };
+            const extIcon = getText('extensions > icon, icon');
+            const extLabel = getText('extensions > iconLabel, iconLabel');
+            const typeTxt = getText('type');
+            const symTxt = getText('sym');
+            const combined = [extIcon, extLabel, typeTxt, symTxt].filter(Boolean).join(' ');
+
+            if (WAYPOINT_ICONS[extIcon]) return extIcon;
+            if (extIcon === 'flag-start' || typeTxt === 'start' || symTxt === 'flag, green') return 'start';
+            if (extIcon === 'flag-finish' || typeTxt === 'finish' || symTxt === 'flag, red') return 'finish';
+            if (extIcon === 'control' || typeTxt === 'control' || combined.includes('control')) return 'control';
+            if (extIcon === 'caution' || typeTxt === 'hazard' || combined.includes('danger') || combined.includes('caution')) return 'hazard';
+            if (extIcon === 'fuel' || typeTxt === 'fuel' || combined.includes('gas') || combined.includes('fuel')) return 'fuel';
+            if (extIcon === 'viewpoint' || typeTxt === 'scenic' || combined.includes('scenic') || combined.includes('viewpoint')) return 'viewpoint';
+            return 'default';
+        }
         let waypointMarkers = [];
         let textBoxMarkers = [];
         let memoryStorage = [];
@@ -1846,10 +2054,52 @@
         let osgbGridLayer = null;
         let isOsGridEnabled = true;
         let isRoadSnapEnabled = true;
-        const OSRM_BASE_URL = 'https://router.project-osrm.org';
-        const OSRM_ROUTE_SERVICE_URL = `${OSRM_BASE_URL}/route/v1`;
-        const OSRM_NEAREST_SERVICE_URL = `${OSRM_BASE_URL}/nearest/v1`;
-        const OSRM_PROFILE = 'driving';
+        let currentRoutingMode = 'rally'; // 'rally' | 'roads' | 'direct'
+        const VALHALLA_ROUTE_URL = 'https://valhalla1.openstreetmap.de/route';
+        const VALHALLA_LOCATE_URL = 'https://valhalla1.openstreetmap.de/locate';
+        const ROUTING_MODE_CONFIGS = {
+            rally: {
+                id: 'rally',
+                label: 'Rally / Stage Roads',
+                routeUrl: VALHALLA_ROUTE_URL,
+                locateUrl: VALHALLA_LOCATE_URL,
+                costing: 'auto',
+                autoOptions: {
+                    ignore_access: true,
+                    ignore_closures: true,
+                    private_access_penalty: 0,
+                    use_tracks: 0.15
+                },
+                searchFilter: {
+                    min_road_class: 'service_other',
+                    max_road_class: 'motorway'
+                }
+            },
+            roads: {
+                id: 'roads',
+                label: 'Public Roads (Car)',
+                routeUrl: VALHALLA_ROUTE_URL,
+                locateUrl: VALHALLA_LOCATE_URL,
+                costing: 'auto',
+                autoOptions: {
+                    use_tracks: 0
+                },
+                searchFilter: {
+                    min_road_class: 'service_other',
+                    max_road_class: 'motorway'
+                }
+            },
+            direct: {
+                id: 'direct',
+                label: 'Direct (Exact)',
+                routeUrl: '',
+                locateUrl: '',
+                costing: 'direct',
+                autoOptions: null,
+                searchFilter: null
+            }
+        };
+        let activeRouterMode = null;
         let elevationHoverMarker = null;
         let elevationProfileData = [];
         let elevationWaypointMarks = [];
@@ -1908,15 +2158,20 @@
 
             return {
                 version: 1,
+                engine: 'valhalla',
                 name,
                 notes,
                 color: currentRouteColor,
+                routingMode: currentRoutingMode,
+                roadSnap: isRoadSnapEnabled,
                 distanceMeters: Number(currentRouteDistanceMeters) || 0,
                 waypoints: currentWaypoints.map(wp => ({
                     lat: Number(wp.lat),
                     lng: Number(wp.lng),
                     label: wp.label || '',
-                    notes: wp.notes || wp.note || ''
+                    notes: wp.notes || wp.note || '',
+                    icon: normalizeWaypointIconId(wp.icon),
+                    direct: Boolean(wp.direct)
                 })),
                 textBoxes: currentTextBoxes.map(tb => ({
                     id: tb.id,
@@ -2016,10 +2271,19 @@
                             lat: Number(w.lat),
                             lng: Number(w.lng),
                             label: w.label || '',
-                            notes: w.notes || w.note || ''
+                            notes: w.notes || w.note || '',
+                            icon: normalizeWaypointIconId(w.icon),
+                            direct: Boolean(w.direct)
                         }))
                         .filter(w => isFinite(w.lat) && isFinite(w.lng))
                     : [];
+
+                if (draft.routingMode) {
+                    setRoutingMode(normalizeRoutingMode(draft.routingMode), { skipRecalc: true, silent: true });
+                }
+                if (typeof draft.roadSnap === 'boolean') {
+                    setRoadSnapEnabled(draft.roadSnap, { skipRecalc: true, silent: true });
+                }
 
                 currentTextBoxes = Array.isArray(draft.textBoxes)
                     ? draft.textBoxes
@@ -2063,7 +2327,8 @@
                 historyIndex = -1;
                 recordHistoryState();
 
-                if (currentRouteGeometry.length >= 2 && currentWaypoints.length >= 2) {
+                const needsValhallaRecalc = draft.engine !== 'valhalla' && currentRoutingMode !== 'direct';
+                if (!needsValhallaRecalc && currentRouteGeometry.length >= 2 && currentWaypoints.length >= 2) {
                     const isFallbackLine = areWaypointCoordsEqual(currentRouteGeometry, currentWaypoints);
                     drawRouteLines(currentRouteGeometry, currentWaypoints, isFallbackLine);
                     updateRouteDistanceDisplay(isFallbackLine ? `~${formatDistance(currentRouteDistanceMeters)}` : undefined);
@@ -2148,6 +2413,23 @@
             btn.addEventListener('click', triggerDelete);
         }
 
+        function getModeHintText() {
+            if (isPlacingTextBox) {
+                return 'Tap anywhere on the map to drop an editable text box.';
+            }
+            if (currentRoutingMode === 'direct') {
+                return 'Direct mode: tap map to place exact waypoints connected by straight lines.';
+            }
+            if (currentRoutingMode === 'roads') {
+                return isRoadSnapEnabled
+                    ? 'Public Roads (Car): Valhalla car routing on unrestricted public roads.'
+                    : 'Public Roads (no marker snap): markers stay at your exact taps.';
+            }
+            return isRoadSnapEnabled
+                ? 'Rally / Stage Roads (Valhalla): follows tarmac, private/MOD & forestry stage roads.'
+                : 'Rally / Stage Roads (no marker snap): markers stay at your exact taps.';
+        }
+
         function setTextBoxPlacementMode(active) {
             isPlacingTextBox = active;
             const btn = document.getElementById('add-textbox-btn');
@@ -2162,11 +2444,7 @@
                 mapEl.classList.toggle('placing-textbox', active);
             }
             if (hintEl) {
-                hintEl.textContent = active
-                    ? 'Tap anywhere on the map to drop an editable text box.'
-                    : (isRoadSnapEnabled
-                        ? 'Tap near roads to drop auto-snapped waypoints. Edit names on map badges or below. Drag badges to move.'
-                        : 'Tap map to drop waypoints. Edit names on map badges or below. Drag badges to move.');
+                hintEl.textContent = getModeHintText();
             }
         }
 
@@ -2253,15 +2531,57 @@
             scheduleAutoSave(400);
         }
 
+        function normalizeRoutingMode(mode) {
+            return Object.prototype.hasOwnProperty.call(ROUTING_MODE_CONFIGS, mode) ? mode : 'rally';
+        }
+
+        function getActiveRoutingConfig() {
+            return ROUTING_MODE_CONFIGS[currentRoutingMode] || ROUTING_MODE_CONFIGS.rally;
+        }
+
         function getRoadSnapMaxMeters() {
-            if (!map) return 1000;
+            if (!map) return 120;
             const center = map.getCenter();
             const zoom = map.getZoom();
             const metersPerPixel = (156543.03392 * Math.cos((center.lat * Math.PI) / 180)) / Math.pow(2, zoom);
-            return Math.max(400, Math.min(3000, Math.round(metersPerPixel * 65)));
+            return Math.max(40, Math.min(180, Math.round(metersPerPixel * 18)));
         }
 
-        function setRoadSnapEnabled(enabled) {
+        function setRoutingMode(mode, options) {
+            const opts = options || {};
+            const nextMode = normalizeRoutingMode(mode);
+            currentRoutingMode = nextMode;
+
+            const select = document.getElementById('routing-mode-select');
+            if (select && select.value !== nextMode) {
+                select.value = nextMode;
+            }
+            const toggle = document.getElementById('snap-roads-toggle');
+            const toggleLabel = document.getElementById('snap-toggle-label');
+            const isDirect = nextMode === 'direct';
+            if (toggle) {
+                toggle.disabled = isDirect;
+            }
+            if (toggleLabel) {
+                toggleLabel.classList.toggle('is-disabled', isDirect);
+            }
+            if (!isPlacingTextBox) {
+                setTextBoxPlacementMode(false);
+            }
+
+            initRouting(true);
+
+            if (!opts.skipRecalc && currentWaypoints.length > 0) {
+                updateRoutingWaypoints();
+            }
+            if (!opts.silent) {
+                showToast(`Routing mode: ${getActiveRoutingConfig().label}`);
+            }
+            scheduleAutoSave(400);
+        }
+
+        function setRoadSnapEnabled(enabled, options) {
+            const opts = options || {};
             isRoadSnapEnabled = Boolean(enabled);
             const toggle = document.getElementById('snap-roads-toggle');
             if (toggle && toggle.checked !== isRoadSnapEnabled) {
@@ -2270,31 +2590,26 @@
             if (!isPlacingTextBox) {
                 setTextBoxPlacementMode(false);
             }
-            if (isRoadSnapEnabled && currentWaypoints.length > 0) {
+            if (!opts.skipRecalc && isRoadSnapEnabled && currentRoutingMode !== 'direct' && currentWaypoints.length > 0) {
                 updateRoutingWaypoints();
-                showToast('Auto road snapping enabled');
-            } else if (!isRoadSnapEnabled) {
-                showToast('Auto road snapping disabled');
             }
+            if (!opts.silent) {
+                showToast(isRoadSnapEnabled ? 'Waypoint snapping enabled' : 'Waypoint snapping disabled — exact points kept');
+            }
+            scheduleAutoSave(400);
         }
 
-        function initRouting() {
+        function initRouting(forceReset) {
             if (!routeLayerGroup && map) {
                 routeLayerGroup = L.layerGroup().addTo(map);
             }
-            if (!osrmRouter && window.L && L.Routing && typeof L.Routing.osrmv1 === 'function') {
-                osrmRouter = L.Routing.osrmv1({
-                    serviceUrl: OSRM_ROUTE_SERVICE_URL,
-                    profile: OSRM_PROFILE,
-                    timeout: 30 * 1000,
-                    routingOptions: {
-                        alternatives: false,
-                        steps: true
-                    },
-                    polylinePrecision: 5,
-                    useHints: true,
-                    suppressDemoServerWarning: true
-                });
+            const cfg = getActiveRoutingConfig();
+            if (cfg.id === 'direct') {
+                activeRouterMode = 'direct';
+                return;
+            }
+            if (forceReset || activeRouterMode !== cfg.id) {
+                activeRouterMode = cfg.id;
             }
         }
 
@@ -2330,8 +2645,7 @@
             }).addTo(routeLayerGroup);
             routePolylineLayers.push(mainLine);
 
-            // If OSRM snapped start/end onto a nearby road away from an off-road waypoint,
-            // draw a clean dashed connector so the route visibly connects all the way to the marker.
+            // If a saved/imported route has endpoints slightly detached from markers, connect cleanly
             if (!isPreview && Array.isArray(waypoints) && waypoints.length >= 2) {
                 const startWp = L.latLng(waypoints[0].lat, waypoints[0].lng);
                 const endWp = L.latLng(waypoints[waypoints.length - 1].lat, waypoints[waypoints.length - 1].lng);
@@ -2341,9 +2655,8 @@
                 if (startWp.distanceTo(firstRoutePt) > 12) {
                     const startConn = L.polyline([startWp, firstRoutePt], {
                         color: currentRouteColor,
-                        opacity: 0.78,
-                        weight: 3.5,
-                        dashArray: '6, 6',
+                        opacity: 0.95,
+                        weight: 4.5,
                         lineCap: 'round',
                         interactive: false
                     }).addTo(routeLayerGroup);
@@ -2353,9 +2666,8 @@
                 if (endWp.distanceTo(lastRoutePt) > 12) {
                     const endConn = L.polyline([lastRoutePt, endWp], {
                         color: currentRouteColor,
-                        opacity: 0.78,
-                        weight: 3.5,
-                        dashArray: '6, 6',
+                        opacity: 0.95,
+                        weight: 4.5,
                         lineCap: 'round',
                         interactive: false
                     }).addTo(routeLayerGroup);
@@ -2379,12 +2691,15 @@
                     lat: Number(wp.lat),
                     lng: Number(wp.lng),
                     label: wp.label || '',
-                    notes: wp.notes || wp.note || ''
+                    notes: wp.notes || wp.note || '',
+                    icon: normalizeWaypointIconId(wp.icon),
+                    direct: Boolean(wp.direct)
                 })),
                 geometry: Array.isArray(currentRouteGeometry)
                     ? currentRouteGeometry.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) }))
                     : [],
-                distanceMeters: Number(currentRouteDistanceMeters) || 0
+                distanceMeters: Number(currentRouteDistanceMeters) || 0,
+                routingMode: currentRoutingMode
             };
         }
 
@@ -2401,12 +2716,20 @@
         function areSnapshotsEqual(a, b) {
             if (!a || !b) return false;
             if (a.distanceMeters !== b.distanceMeters) return false;
+            if ((a.routingMode || 'rally') !== (b.routingMode || 'rally')) return false;
             if (a.waypoints.length !== b.waypoints.length) return false;
             if (a.geometry.length !== b.geometry.length) return false;
             for (let i = 0; i < a.waypoints.length; i++) {
                 const wa = a.waypoints[i];
                 const wb = b.waypoints[i];
-                if (wa.lat !== wb.lat || wa.lng !== wb.lng || wa.label !== wb.label || wa.notes !== wb.notes) {
+                if (
+                    wa.lat !== wb.lat ||
+                    wa.lng !== wb.lng ||
+                    wa.label !== wb.label ||
+                    wa.notes !== wb.notes ||
+                    Boolean(wa.direct) !== Boolean(wb.direct) ||
+                    normalizeWaypointIconId(wa.icon) !== normalizeWaypointIconId(wb.icon)
+                ) {
                     return false;
                 }
             }
@@ -2472,7 +2795,9 @@
                 lat: Number(wp.lat),
                 lng: Number(wp.lng),
                 label: wp.label || '',
-                notes: wp.notes || wp.note || ''
+                notes: wp.notes || wp.note || '',
+                icon: normalizeWaypointIconId(wp.icon),
+                direct: Boolean(wp.direct)
             }));
             const shouldSyncEntry = (entry) => {
                 if (!entry) return false;
@@ -2505,11 +2830,17 @@
             clearPendingHistoryCommit();
             routeRequestSeq++;
 
+            if (snap.routingMode) {
+                setRoutingMode(normalizeRoutingMode(snap.routingMode), { skipRecalc: true, silent: true });
+            }
+
             currentWaypoints = snap.waypoints.map(wp => ({
                 lat: Number(wp.lat),
                 lng: Number(wp.lng),
                 label: wp.label || '',
-                notes: wp.notes || ''
+                notes: wp.notes || '',
+                icon: normalizeWaypointIconId(wp.icon),
+                direct: Boolean(wp.direct)
             }));
             currentRouteGeometry = Array.isArray(snap.geometry)
                 ? snap.geometry.map(pt => ({ lat: Number(pt.lat), lng: Number(pt.lng) }))
@@ -2524,7 +2855,9 @@
                 routePolylineLayers = [];
                 updateRouteDistanceDisplay();
             } else if (currentRouteGeometry.length >= 2) {
-                const isFallbackLine = areWaypointCoordsEqual(currentRouteGeometry, currentWaypoints);
+                const isFallbackLine = currentRoutingMode !== 'direct' &&
+                    !currentWaypoints.some(w => w.direct) &&
+                    areWaypointCoordsEqual(currentRouteGeometry, currentWaypoints);
                 drawRouteLines(currentRouteGeometry, currentWaypoints, isFallbackLine);
                 updateRouteDistanceDisplay(isFallbackLine ? `~${formatDistance(currentRouteDistanceMeters)}` : undefined);
             } else {
@@ -2554,39 +2887,150 @@
             showToast('Redid change');
         }
 
+        function decodeValhallaPolyline6(encoded) {
+            if (!encoded || typeof encoded !== 'string') return [];
+            const coords = [];
+            let index = 0;
+            let lat = 0;
+            let lng = 0;
+            while (index < encoded.length) {
+                let b;
+                let shift = 0;
+                let result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20 && index < encoded.length);
+                const dlat = (result & 1) ? ~(result >> 1) : (result >> 1);
+                lat += dlat;
+
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20 && index < encoded.length);
+                const dlng = (result & 1) ? ~(result >> 1) : (result >> 1);
+                lng += dlng;
+
+                coords.push({
+                    lat: Number((lat / 1e6).toFixed(6)),
+                    lng: Number((lng / 1e6).toFixed(6))
+                });
+            }
+            return coords;
+        }
+
         async function snapSingleWaypointToRoad(reqId, targetHistoryIdx) {
-            if (!isRoadSnapEnabled || currentWaypoints.length !== 1) return;
+            const cfg = getActiveRoutingConfig();
+            if (!isRoadSnapEnabled || cfg.id === 'direct' || !cfg.locateUrl || currentWaypoints.length !== 1) return;
             const wp = currentWaypoints[0];
+            if (wp.direct) return;
+
             const rawLatLng = L.latLng(wp.lat, wp.lng);
             const maxSnapMeters = getRoadSnapMaxMeters();
-            const url = `${OSRM_NEAREST_SERVICE_URL}/${OSRM_PROFILE}/${encodeURIComponent(wp.lng)},${encodeURIComponent(wp.lat)}?number=1`;
 
             try {
-                const res = await fetch(url);
+                const res = await fetch(cfg.locateUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        locations: [{
+                            lat: wp.lat,
+                            lon: wp.lng,
+                            radius: maxSnapMeters,
+                            ...(cfg.searchFilter ? { search_filter: cfg.searchFilter } : {})
+                        }],
+                        costing: cfg.costing,
+                        costing_options: { [cfg.costing]: cfg.autoOptions || {} }
+                    })
+                });
                 if (!res.ok) return;
                 const data = await res.json();
-                if (reqId !== routeRequestSeq || currentWaypoints.length !== 1 || !isRoadSnapEnabled) return;
+                if (reqId !== routeRequestSeq || currentWaypoints.length !== 1 || !isRoadSnapEnabled || currentWaypoints[0].direct) return;
 
-                const loc = data && Array.isArray(data.waypoints) && data.waypoints[0] && data.waypoints[0].location;
-                if (!Array.isArray(loc) || loc.length < 2) return;
+                const edges = Array.isArray(data) && data[0] && Array.isArray(data[0].edges) ? data[0].edges : [];
+                let bestLatLng = null;
+                let bestDist = Infinity;
+                edges.forEach((edge) => {
+                    const lat = Number(edge.correlated_lat);
+                    const lng = Number(edge.correlated_lon);
+                    if (!isFinite(lat) || !isFinite(lng)) return;
+                    const candidate = L.latLng(lat, lng);
+                    const dist = rawLatLng.distanceTo(candidate);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        bestLatLng = candidate;
+                    }
+                });
 
-                const snappedLatLng = L.latLng(Number(loc[1]), Number(loc[0]));
-                if (!isFinite(snappedLatLng.lat) || !isFinite(snappedLatLng.lng)) return;
-
-                if (rawLatLng.distanceTo(snappedLatLng) <= maxSnapMeters) {
-                    currentWaypoints[0].lat = snappedLatLng.lat;
-                    currentWaypoints[0].lng = snappedLatLng.lng;
+                if (bestLatLng && bestDist <= maxSnapMeters) {
+                    currentWaypoints[0].lat = bestLatLng.lat;
+                    currentWaypoints[0].lng = bestLatLng.lng;
                     if (waypointMarkers[0]) {
-                        waypointMarkers[0].setLatLng(snappedLatLng);
+                        waypointMarkers[0].setLatLng(bestLatLng);
                     }
                     syncCurrentHistoryGeometry(targetHistoryIdx, true);
                 }
             } catch (e) {
-                // Retain exact dropped coordinate if OSRM nearest request fails
+                // Retain exact dropped coordinate if locate request fails
             }
         }
 
-        function updateRoutingWaypoints() {
+        async function routeChainWithValhalla(cfg, sliceWps, searchRadius) {
+            if (!cfg || !cfg.routeUrl || !Array.isArray(sliceWps) || sliceWps.length < 2) return null;
+
+            const locations = sliceWps.map((wp) => ({
+                lat: Number(wp.lat),
+                lon: Number(wp.lng),
+                type: 'break',
+                radius: searchRadius,
+                ...(cfg.searchFilter ? { search_filter: cfg.searchFilter } : {})
+            }));
+
+            try {
+                const res = await fetch(cfg.routeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        locations,
+                        costing: cfg.costing,
+                        costing_options: {
+                            [cfg.costing]: cfg.autoOptions || {}
+                        },
+                        directions_options: {
+                            units: 'km'
+                        }
+                    })
+                });
+                if (!res.ok) return null;
+                const data = await res.json();
+                const legs = data && data.trip && Array.isArray(data.trip.legs) ? data.trip.legs : null;
+                if (!legs || legs.length !== sliceWps.length - 1) return null;
+
+                const decodedLegs = legs.map((leg) => decodeValhallaPolyline6(leg.shape));
+                if (decodedLegs.some(pts => pts.length < 2)) return null;
+                return { legs: decodedLegs };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function appendGeometryPoints(target, points) {
+            points.forEach((pt) => {
+                const lat = Number(pt.lat);
+                const lng = Number(pt.lng);
+                if (!isFinite(lat) || !isFinite(lng)) return;
+                const last = target[target.length - 1];
+                if (!last || Math.abs(last.lat - lat) > 1e-7 || Math.abs(last.lng - lng) > 1e-7) {
+                    target.push({ lat, lng });
+                }
+            });
+        }
+
+        async function updateRoutingWaypoints() {
             initRouting();
             const reqId = ++routeRequestSeq;
             const targetHistoryIdx = historyIndex;
@@ -2598,90 +3042,189 @@
                 routePolylineLayers = [];
                 updateRouteDistanceDisplay();
                 syncCurrentHistoryGeometry(targetHistoryIdx, false);
-                if (currentWaypoints.length === 1 && isRoadSnapEnabled) {
+                if (currentWaypoints.length === 1 && isRoadSnapEnabled && currentRoutingMode !== 'direct') {
                     snapSingleWaypointToRoad(reqId, targetHistoryIdx);
                 }
                 refreshElevationProfile();
                 return;
             }
 
-            // Immediately show a clean live preview so no stale route marks linger
-            currentRouteGeometry = [];
-            renderPreviewRoutePolyline();
-            updateRouteDistanceDisplay('Calculating...');
+            const cfg = getActiveRoutingConfig();
 
-            if (!osrmRouter) {
+            // Pure Direct (Exact) mode or all legs marked direct
+            const allLegsDirect = cfg.id === 'direct' ||
+                currentWaypoints.slice(1).every(wp => Boolean(wp.direct));
+            if (allLegsDirect || !cfg.routeUrl) {
                 currentRouteGeometry = currentWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng }));
-                currentRouteDistanceMeters = calculatePolylineDistanceMeters(currentWaypoints);
-                drawRouteLines(currentRouteGeometry, currentWaypoints, true);
-                updateRouteDistanceDisplay(`~${formatDistance(currentRouteDistanceMeters)}`);
+                currentRouteDistanceMeters = calculatePolylineDistanceMeters(currentRouteGeometry);
+                drawRouteLines(currentRouteGeometry, currentWaypoints, false);
+                updateRouteDistanceDisplay();
                 syncCurrentHistoryGeometry(targetHistoryIdx, false);
                 refreshElevationProfile();
                 return;
             }
 
-            const routingWaypoints = currentWaypoints.map(wp =>
-                L.Routing.waypoint(L.latLng(wp.lat, wp.lng), wp.label || '', { allowUTurn: false })
-            );
-            osrmRouter.route(routingWaypoints, function(err, routes) {
-                if (reqId !== routeRequestSeq) return;
+            // Show clean preview while routing
+            currentRouteGeometry = [];
+            renderPreviewRoutePolyline();
+            updateRouteDistanceDisplay('Calculating...');
 
-                if (!err && routes && routes[0] && Array.isArray(routes[0].coordinates) && routes[0].coordinates.length >= 2) {
-                    const route = routes[0];
-                    currentRouteGeometry = route.coordinates.map(c => ({ lat: c.lat, lng: c.lng }));
+            // Partition consecutive non-direct legs into contiguous chains
+            const legs = [];
+            for (let i = 0; i < currentWaypoints.length - 1; i++) {
+                legs.push({
+                    fromIdx: i,
+                    toIdx: i + 1,
+                    isDirect: Boolean(currentWaypoints[i + 1].direct)
+                });
+            }
 
-                    if (isRoadSnapEnabled) {
-                        const maxSnapMeters = getRoadSnapMaxMeters();
-                        const snappedWaypoints = Array.isArray(route.waypoints) ? route.waypoints : [];
-                        currentWaypoints.forEach((wp, idx) => {
-                            let snappedLatLng = snappedWaypoints[idx] && snappedWaypoints[idx].latLng
-                                ? snappedWaypoints[idx].latLng
-                                : null;
-                            if (!snappedLatLng && idx === 0) {
-                                snappedLatLng = route.coordinates[0];
-                            } else if (!snappedLatLng && idx === currentWaypoints.length - 1) {
-                                snappedLatLng = route.coordinates[route.coordinates.length - 1];
-                            }
-                            if (snappedLatLng && isFinite(snappedLatLng.lat) && isFinite(snappedLatLng.lng)) {
-                                const rawLatLng = L.latLng(wp.lat, wp.lng);
-                                if (rawLatLng.distanceTo(snappedLatLng) <= maxSnapMeters) {
-                                    wp.lat = Number(snappedLatLng.lat);
-                                    wp.lng = Number(snappedLatLng.lng);
-                                    if (waypointMarkers[idx]) {
-                                        waypointMarkers[idx].setLatLng(snappedLatLng);
-                                    }
-                                }
-                            }
-                        });
-                    }
-
-                    if (route.summary && typeof route.summary.totalDistance === 'number') {
-                        currentRouteDistanceMeters = route.summary.totalDistance;
-                    } else {
-                        currentRouteDistanceMeters = calculatePolylineDistanceMeters(currentRouteGeometry);
-                    }
-                    drawRouteLines(currentRouteGeometry, currentWaypoints, false);
-                    updateRouteDistanceDisplay();
-                    syncCurrentHistoryGeometry(targetHistoryIdx, isRoadSnapEnabled);
-                } else {
-                    currentRouteGeometry = currentWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng }));
-                    currentRouteDistanceMeters = calculatePolylineDistanceMeters(currentWaypoints);
-                    drawRouteLines(currentRouteGeometry, currentWaypoints, true);
-                    updateRouteDistanceDisplay(`~${formatDistance(currentRouteDistanceMeters)}`);
-                    syncCurrentHistoryGeometry(targetHistoryIdx, false);
+            const chains = [];
+            let i = 0;
+            while (i < legs.length) {
+                if (legs[i].isDirect) {
+                    i++;
+                    continue;
                 }
-                refreshElevationProfile();
+                const startWpIdx = legs[i].fromIdx;
+                while (i < legs.length && !legs[i].isDirect) {
+                    i++;
+                }
+                const endWpIdx = legs[i - 1].toIdx;
+                chains.push({ startWpIdx, endWpIdx });
+            }
+
+            const maxSnapMeters = getRoadSnapMaxMeters();
+            const valhallaSearchRadius = Math.max(150, maxSnapMeters);
+
+            const chainResults = await Promise.all(chains.map(async (chain) => {
+                const sliceWps = currentWaypoints.slice(chain.startWpIdx, chain.endWpIdx + 1);
+                const route = await routeChainWithValhalla(cfg, sliceWps, valhallaSearchRadius);
+                return { chain, route };
+            }));
+
+            if (reqId !== routeRequestSeq) return;
+
+            const stitchedCoords = [];
+            let anySnappedMarkers = false;
+            let usedFallbackPreview = false;
+
+            const chainByStart = new Map();
+            chainResults.forEach(({ chain, route }) => {
+                chainByStart.set(chain.startWpIdx, { chain, route });
+                if (!route || !Array.isArray(route.legs) || route.legs.length === 0) return;
+
+                const len = chain.endWpIdx - chain.startWpIdx + 1;
+                for (let m = 0; m < len; m++) {
+                    const globalIdx = chain.startWpIdx + m;
+                    const wp = currentWaypoints[globalIdx];
+                    if (!wp || wp.direct || !isRoadSnapEnabled) continue;
+
+                    const snappedPt = (m === 0)
+                        ? route.legs[0][0]
+                        : route.legs[m - 1][route.legs[m - 1].length - 1];
+                    if (snappedPt && isFinite(snappedPt.lat) && isFinite(snappedPt.lng)) {
+                        const rawLatLng = L.latLng(wp.lat, wp.lng);
+                        const snappedLatLng = L.latLng(snappedPt.lat, snappedPt.lng);
+                        if (rawLatLng.distanceTo(snappedLatLng) <= maxSnapMeters) {
+                            wp.lat = Number(snappedLatLng.lat);
+                            wp.lng = Number(snappedLatLng.lng);
+                            if (waypointMarkers[globalIdx]) {
+                                waypointMarkers[globalIdx].setLatLng(snappedLatLng);
+                            }
+                            anySnappedMarkers = true;
+                        }
+                    }
+                }
             });
+
+            let legCursor = 0;
+            while (legCursor < legs.length) {
+                const leg = legs[legCursor];
+                if (leg.isDirect) {
+                    appendGeometryPoints(stitchedCoords, [
+                        currentWaypoints[leg.fromIdx],
+                        currentWaypoints[leg.toIdx]
+                    ]);
+                    legCursor++;
+                    continue;
+                }
+
+                const entry = chainByStart.get(leg.fromIdx);
+                const chain = entry ? entry.chain : { startWpIdx: leg.fromIdx, endWpIdx: leg.toIdx };
+                const route = entry ? entry.route : null;
+                const chainWps = currentWaypoints.slice(chain.startWpIdx, chain.endWpIdx + 1);
+
+                if (!route || !Array.isArray(route.legs) || route.legs.length !== chainWps.length - 1) {
+                    appendGeometryPoints(stitchedCoords, chainWps);
+                    usedFallbackPreview = true;
+                    legCursor = chain.endWpIdx;
+                    continue;
+                }
+
+                for (let m = 0; m < chainWps.length - 1; m++) {
+                    const wpA = chainWps[m];
+                    const wpB = chainWps[m + 1];
+                    const rawA = L.latLng(wpA.lat, wpA.lng);
+                    const rawB = L.latLng(wpB.lat, wpB.lng);
+                    const legCoords = route.legs[m] || [];
+
+                    if (legCoords.length < 2) {
+                        appendGeometryPoints(stitchedCoords, [wpA, wpB]);
+                        usedFallbackPreview = true;
+                        continue;
+                    }
+
+                    const firstSlicePt = L.latLng(legCoords[0].lat, legCoords[0].lng);
+                    const lastSlicePt = L.latLng(legCoords[legCoords.length - 1].lat, legCoords[legCoords.length - 1].lng);
+                    const legRoadMeters = calculatePolylineDistanceMeters(legCoords);
+
+                    // Guard against collapsing two distant pins onto the same short off-route stub
+                    if (rawA.distanceTo(rawB) > 60 && legRoadMeters < 15) {
+                        appendGeometryPoints(stitchedCoords, [wpA, wpB]);
+                        usedFallbackPreview = true;
+                        continue;
+                    }
+
+                    const legPts = [];
+                    if (rawA.distanceTo(firstSlicePt) > 6) {
+                        legPts.push({ lat: rawA.lat, lng: rawA.lng });
+                    }
+                    legCoords.forEach(c => legPts.push({ lat: c.lat, lng: c.lng }));
+                    if (rawB.distanceTo(lastSlicePt) > 6) {
+                        legPts.push({ lat: rawB.lat, lng: rawB.lng });
+                    }
+
+                    appendGeometryPoints(stitchedCoords, legPts);
+                }
+
+                legCursor = chain.endWpIdx;
+            }
+
+            currentRouteGeometry = stitchedCoords.length >= 2
+                ? stitchedCoords
+                : currentWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng }));
+            currentRouteDistanceMeters = calculatePolylineDistanceMeters(currentRouteGeometry);
+
+            drawRouteLines(currentRouteGeometry, currentWaypoints, usedFallbackPreview);
+            updateRouteDistanceDisplay(usedFallbackPreview ? `~${formatDistance(currentRouteDistanceMeters)}` : undefined);
+            syncCurrentHistoryGeometry(targetHistoryIdx, anySnappedMarkers);
+            refreshElevationProfile();
         }
 
         function createIconForWaypoint(wp, index) {
             const placeholderText = `Point ${index + 1}`;
             const widthStyle = measureInputWidth(wp.label, placeholderText);
+            const iconMeta = getWaypointIconMeta(wp);
+            const iconBadgeHtml = iconMeta.id !== 'default'
+                ? `<span class="wp-badge-icon" title="${escapeHtml(iconMeta.label)}">${iconMeta.emoji}</span>`
+                : '';
             return L.divIcon({
                 className: '',
                 html: `
-                    <div class="waypoint-badge">
+                    <div class="waypoint-badge" style="background: ${escapeHtml(iconMeta.color)};">
                         <span class="number" title="Drag to move">${index + 1}</span>
+                        ${iconBadgeHtml}
                         <input
                             type="text"
                             class="waypoint-map-input"
@@ -2744,21 +3287,50 @@
             list.innerHTML = '';
 
             currentWaypoints.forEach((wp, idx) => {
+                const iconMeta = getWaypointIconMeta(wp);
+                const iconOptionsHtml = Object.values(WAYPOINT_ICONS).map((opt) =>
+                    `<option value="${opt.id}"${opt.id === iconMeta.id ? ' selected' : ''}>${opt.emoji} ${escapeHtml(opt.label)}</option>`
+                ).join('');
+
+                const directToggleHtml = idx > 0
+                    ? `<div class="wp-direct-field">
+                            <label class="wp-direct-label" title="Connect straight to this exact waypoint without snapping this leg to roads">
+                                <input type="checkbox" class="wp-direct-checkbox" data-wp-direct-idx="${idx}"${wp.direct ? ' checked' : ''} />
+                                Direct line to this point (skip road snap)
+                            </label>
+                       </div>`
+                    : `<div class="wp-direct-field">
+                            <label class="wp-direct-label" title="Keep this waypoint at its exact dropped location without snapping to roads">
+                                <input type="checkbox" class="wp-direct-checkbox" data-wp-direct-idx="${idx}"${wp.direct ? ' checked' : ''} />
+                                Keep exact location (skip road snap)
+                            </label>
+                       </div>`;
+
                 const row = document.createElement('div');
                 row.className = 'wp-row';
                 row.innerHTML = `
                     <div class="wp-row-top">
-                        <span class="wp-num">${idx + 1}</span>
+                        <span class="wp-num" style="background: ${escapeHtml(iconMeta.color)};">${idx + 1}</span>
                         <input type="text" class="wp-label-input" value="${escapeHtml(wp.label || '')}" placeholder="Point ${idx + 1} (e.g. Start, Control 1)" data-wp-idx="${idx}" />
                         <button type="button" class="wp-del-btn" title="Remove waypoint">✕</button>
                     </div>
+                    <div class="wp-icon-field">
+                        <label class="wp-note-label" for="wp-icon-${idx}">Icon</label>
+                        <select id="wp-icon-${idx}" class="wp-icon-select" data-wp-icon-idx="${idx}" aria-label="Waypoint ${idx + 1} icon">
+                            ${iconOptionsHtml}
+                        </select>
+                    </div>
+                    ${directToggleHtml}
                     <div class="wp-note-field">
                         <label class="wp-note-label" for="wp-notes-${idx}">Notes</label>
                         <textarea id="wp-notes-${idx}" class="wp-note-textarea" rows="2" placeholder="Waypoint notes..." data-wp-note-idx="${idx}">${escapeHtml(wp.notes || wp.note || '')}</textarea>
                     </div>
                 `;
 
+                const numBadge = row.querySelector('.wp-num');
                 const sidebarInput = row.querySelector('.wp-label-input');
+                const iconSelect = row.querySelector('.wp-icon-select');
+                const directCheckbox = row.querySelector('.wp-direct-checkbox');
                 const noteTextarea = row.querySelector('.wp-note-textarea');
                 const delBtn = row.querySelector('.wp-del-btn');
 
@@ -2779,6 +3351,51 @@
                 sidebarInput.addEventListener('blur', () => {
                     if (historyInputTimer) recordHistoryState();
                 });
+
+                iconSelect.addEventListener('change', (e) => {
+                    const nextIconId = normalizeWaypointIconId(e.target.value);
+                    currentWaypoints[idx].icon = nextIconId;
+                    const nextMeta = getWaypointIconMeta(currentWaypoints[idx]);
+
+                    if (numBadge) {
+                        numBadge.style.background = nextMeta.color;
+                    }
+
+                    const marker = waypointMarkers[idx];
+                    if (marker && marker.getElement()) {
+                        const badgeEl = marker.getElement().querySelector('.waypoint-badge');
+                        if (badgeEl) {
+                            badgeEl.style.background = nextMeta.color;
+                            let iconSpan = badgeEl.querySelector('.wp-badge-icon');
+                            if (nextMeta.id === 'default') {
+                                if (iconSpan) iconSpan.remove();
+                            } else {
+                                if (!iconSpan) {
+                                    iconSpan = document.createElement('span');
+                                    iconSpan.className = 'wp-badge-icon';
+                                    const numEl = badgeEl.querySelector('.number');
+                                    if (numEl && numEl.nextSibling) {
+                                        badgeEl.insertBefore(iconSpan, numEl.nextSibling);
+                                    } else {
+                                        badgeEl.prepend(iconSpan);
+                                    }
+                                }
+                                iconSpan.textContent = nextMeta.emoji;
+                                iconSpan.title = nextMeta.label;
+                            }
+                        }
+                    }
+
+                    recordHistoryState();
+                });
+
+                if (directCheckbox) {
+                    directCheckbox.addEventListener('change', (e) => {
+                        currentWaypoints[idx].direct = Boolean(e.target.checked);
+                        recordHistoryState();
+                        updateRoutingWaypoints();
+                    });
+                }
 
                 noteTextarea.addEventListener('input', (e) => {
                     currentWaypoints[idx].notes = e.target.value;
@@ -3035,10 +3652,23 @@
         function addWaypoint(latlng) {
             initRouting();
             let defaultLabel = '';
-            if (currentWaypoints.length === 0) defaultLabel = 'Start';
-            else if (currentWaypoints.length === 1) defaultLabel = 'Finish';
+            let defaultIcon = 'default';
+            if (currentWaypoints.length === 0) {
+                defaultLabel = 'Start';
+                defaultIcon = 'start';
+            } else if (currentWaypoints.length === 1) {
+                defaultLabel = 'Finish';
+                defaultIcon = 'finish';
+            }
 
-            currentWaypoints.push({ lat: latlng.lat, lng: latlng.lng, label: defaultLabel, notes: '' });
+            currentWaypoints.push({
+                lat: latlng.lat,
+                lng: latlng.lng,
+                label: defaultLabel,
+                notes: '',
+                icon: defaultIcon,
+                direct: false
+            });
             syncMarkersToWaypoints();
             recordHistoryState();
             updateRoutingWaypoints();
@@ -3084,12 +3714,15 @@
                 name: name,
                 notes: notes,
                 color: currentRouteColor,
+                routingMode: currentRoutingMode,
                 distanceMeters: computedDistance,
                 waypoints: currentWaypoints.map(wp => ({
                     lat: Number(wp.lat),
                     lng: Number(wp.lng),
                     label: wp.label || '',
-                    notes: wp.notes || wp.note || ''
+                    notes: wp.notes || wp.note || '',
+                    icon: normalizeWaypointIconId(wp.icon),
+                    direct: Boolean(wp.direct)
                 })),
                 textBoxes: currentTextBoxes.map(tb => ({
                     id: tb.id,
@@ -3222,8 +3855,13 @@
                 lat: w.lat,
                 lng: w.lng,
                 label: w.label || '',
-                notes: w.notes || w.note || ''
+                notes: w.notes || w.note || '',
+                icon: normalizeWaypointIconId(w.icon),
+                direct: Boolean(w.direct)
             }));
+            if (route.routingMode) {
+                setRoutingMode(normalizeRoutingMode(route.routingMode), { skipRecalc: true, silent: true });
+            }
             currentTextBoxes = (route.textBoxes || []).map((tb, idx) => ({
                 id: tb.id || ('tb_' + Date.now() + '_' + idx),
                 lat: tb.lat,
@@ -3409,30 +4047,31 @@
             gpxContent += '    </extensions>\n';
             gpxContent += '  </metadata>\n';
 
-            // Waypoints with marker symbol, role type, and display extensions
+            // Waypoints with marker symbol, selected icon metadata, role type, and display extensions
             (route.waypoints || []).forEach((pt, index) => {
                 const wptName = pt.label ? pt.label : `Waypoint ${index + 1}`;
                 const wptNotes = pt.notes || pt.note || '';
-                const isStart = index === 0;
-                const isFinish = totalWpts > 1 && index === totalWpts - 1;
-                const symName = isStart ? 'Flag, Green' : (isFinish ? 'Flag, Red' : 'Flag, Blue');
-                const wptType = isStart ? 'start' : (isFinish ? 'finish' : 'waypoint');
-                const markerHex = isStart ? '#16A34A' : (isFinish ? '#DC2626' : routeHex);
-                const markerGarmin = isStart ? 'Green' : (isFinish ? 'Red' : garminColor);
+                const hasExplicitIcon = typeof pt.icon === 'string' && Object.prototype.hasOwnProperty.call(WAYPOINT_ICONS, pt.icon.trim().toLowerCase());
+                const fallbackIconId = index === 0 ? 'start' : (totalWpts > 1 && index === totalWpts - 1 ? 'finish' : 'default');
+                const iconMeta = WAYPOINT_ICONS[hasExplicitIcon ? normalizeWaypointIconId(pt.icon) : fallbackIconId];
+                const markerHex = iconMeta.id === 'default' ? routeHex : normalizeHexColor(iconMeta.color);
+                const markerGarmin = iconMeta.id === 'default' ? garminColor : iconMeta.garminColor;
 
                 gpxContent += `  <wpt lat="${pt.lat}" lon="${pt.lng}">\n`;
                 gpxContent += `    <name>${escapeXml(wptName)}</name>\n`;
                 if (wptNotes) {
                     gpxContent += `    <desc>${escapeXml(wptNotes)}</desc>\n`;
                 }
-                gpxContent += `    <sym>${symName}</sym>\n`;
-                gpxContent += `    <type>${wptType}</type>\n`;
+                gpxContent += `    <sym>${escapeXml(iconMeta.gpxSym)}</sym>\n`;
+                gpxContent += `    <type>${escapeXml(iconMeta.gpxType)}</type>\n`;
                 gpxContent += '    <extensions>\n';
                 gpxContent += `      <color>${markerHex}</color>\n`;
-                gpxContent += `      <icon>${isStart ? 'flag-start' : (isFinish ? 'flag-finish' : 'pin-waypoint')}</icon>\n`;
+                gpxContent += `      <icon>${escapeXml(iconMeta.gpxIcon)}</icon>\n`;
+                gpxContent += `      <iconId>${escapeXml(iconMeta.id)}</iconId>\n`;
+                gpxContent += `      <iconLabel>${escapeXml(iconMeta.label)}</iconLabel>\n`;
                 gpxContent += '      <gpxx:WaypointExtension>\n';
                 gpxContent += '        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>\n';
-                gpxContent += `        <gpxx:Categories><gpxx:Category>${markerGarmin}</gpxx:Category></gpxx:Categories>\n`;
+                gpxContent += `        <gpxx:Categories><gpxx:Category>${escapeXml(iconMeta.label)}</gpxx:Category><gpxx:Category>${escapeXml(markerGarmin)}</gpxx:Category></gpxx:Categories>\n`;
                 gpxContent += '      </gpxx:WaypointExtension>\n';
                 gpxContent += '    </extensions>\n';
                 gpxContent += '  </wpt>\n';
@@ -3549,7 +4188,8 @@
                                 lat,
                                 lng,
                                 label: nameEl ? nameEl.textContent.trim() : '',
-                                notes: descEl ? descEl.textContent.trim() : ''
+                                notes: descEl ? descEl.textContent.trim() : '',
+                                icon: inferWaypointIconFromGpx(wpt)
                             });
                         }
                     });
@@ -3569,7 +4209,8 @@
                         lat: p.lat,
                         lng: p.lng,
                         label: idx === 0 ? 'Start' : (idx === pts.length - 1 ? 'Finish' : ''),
-                        notes: ''
+                        notes: '',
+                        icon: idx === 0 ? 'start' : (idx === pts.length - 1 ? 'finish' : 'default')
                     }));
                 }
 
@@ -3891,10 +4532,12 @@
             // Draw waypoint badges
             currentWaypoints.forEach((wp, idx) => {
                 const pt = map.latLngToContainerPoint(L.latLng(wp.lat, wp.lng));
-                const label = wp.label ? wp.label : `Point ${idx + 1}`;
+                const iconMeta = getWaypointIconMeta(wp);
+                const rawLabel = wp.label ? wp.label : `Point ${idx + 1}`;
+                const displayLabel = iconMeta.id !== 'default' ? `${iconMeta.emoji} ${rawLabel}` : rawLabel;
                 ctx.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                const textW = ctx.measureText(label).width;
-                const badgeW = Math.min(220, 34 + textW + 12);
+                const textW = ctx.measureText(displayLabel).width;
+                const badgeW = Math.min(240, 34 + textW + 12);
                 const badgeH = 28;
                 const bx = pt.x - 14;
                 const by = pt.y - 14;
@@ -3903,7 +4546,7 @@
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
                 ctx.shadowBlur = 5;
                 ctx.shadowOffsetY = 2;
-                ctx.fillStyle = '#2b8ed6';
+                ctx.fillStyle = iconMeta.color;
                 drawRoundedRect(ctx, bx, by, badgeW, badgeH, 14);
                 ctx.fill();
                 ctx.restore();
@@ -3927,7 +4570,7 @@
 
                 ctx.textAlign = 'left';
                 ctx.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                ctx.fillText(label, bx + 30, by + 14.5, badgeW - 38);
+                ctx.fillText(displayLabel, bx + 30, by + 14.5, badgeW - 38);
                 ctx.textBaseline = 'alphabetic';
             });
 
@@ -4161,7 +4804,9 @@
                 cursorY -= 32;
             } else {
                 routeInfo.waypoints.forEach((wp, idx) => {
-                    const label = wp.label ? wp.label : `Point ${idx + 1}`;
+                    const iconMeta = getWaypointIconMeta(wp);
+                    const rawLabel = wp.label ? wp.label : `Point ${idx + 1}`;
+                    const label = iconMeta.id !== 'default' ? `${rawLabel} [${iconMeta.label}]` : rawLabel;
                     const coords = `${Number(wp.lat).toFixed(5)}, ${Number(wp.lng).toFixed(5)}`;
                     const wpNotes = (wp.notes || wp.note || '').trim() || '-';
                     const labelLines = wrapPdfLines(label, 25);
@@ -4601,12 +5246,15 @@
 
                 const waypointsRowsHtml = currentWaypoints.length > 0
                     ? currentWaypoints.map((wp, idx) => {
-                        const label = wp.label ? wp.label : `Point ${idx + 1}`;
+                        const iconMeta = getWaypointIconMeta(wp);
+                        const rawLabel = wp.label ? wp.label : `Point ${idx + 1}`;
+                        const iconPrefix = iconMeta.id !== 'default' ? `${iconMeta.emoji} ` : '';
+                        const iconTag = iconMeta.id !== 'default' ? ` (${escapeHtml(iconMeta.label)})` : '';
                         const wpNotes = wp.notes || wp.note || '';
                         return `
                             <tr>
                                 <td class="num-col">${idx + 1}</td>
-                                <td>${escapeHtml(label)}</td>
+                                <td>${iconPrefix}${escapeHtml(rawLabel)}${iconTag}</td>
                                 <td class="coord-col">${Number(wp.lat).toFixed(5)}, ${Number(wp.lng).toFixed(5)}</td>
                                 <td>${wpNotes ? escapeHtml(wpNotes) : '—'}</td>
                             </tr>
@@ -5545,7 +6193,7 @@
                 {
                     'OS Landranger Topo': landrangerLayer,
                     'Standard Street (OSM)': osmLayer,
-                    'Trails & Contours (CyclOSM)': cyclosmLayer,
+                    'Topo & Contours': cyclosmLayer,
                     'Dark Matter (Night)': darkLayer
                 },
                 {
@@ -5594,6 +6242,10 @@
             const osGridToggle = document.getElementById('os-grid-toggle');
             if (osGridToggle) {
                 osGridToggle.addEventListener('change', (e) => setOsGridVisible(e.target.checked));
+            }
+            const routingModeSelect = document.getElementById('routing-mode-select');
+            if (routingModeSelect) {
+                routingModeSelect.addEventListener('change', (e) => setRoutingMode(e.target.value));
             }
             const snapRoadsToggle = document.getElementById('snap-roads-toggle');
             if (snapRoadsToggle) {
