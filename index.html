@@ -555,6 +555,25 @@
             box-shadow: 0 0 0 2px rgba(43, 142, 214, 0.18);
         }
 
+        .wp-set-finish-btn {
+            flex-shrink: 0;
+            padding: 5px 9px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            background: #fef2f2;
+            color: #b91c1c;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .wp-set-finish-btn:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
         .wp-direct-field {
             display: flex;
             align-items: center;
@@ -1476,6 +1495,17 @@
             box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
         }
 
+        body.dark-mode .wp-set-finish-btn {
+            background: rgba(220, 38, 38, 0.18);
+            border-color: rgba(248, 113, 113, 0.4);
+            color: #fca5a5;
+        }
+
+        body.dark-mode .wp-set-finish-btn:hover {
+            background: rgba(220, 38, 38, 0.32);
+            border-color: rgba(248, 113, 113, 0.65);
+        }
+
         body.dark-mode .wp-del-btn {
             background: rgba(220, 38, 38, 0.22);
             color: #fca5a5;
@@ -1811,7 +1841,7 @@
                     </label>
                 </div>
             </div>
-            <p class="hint" id="mode-hint">Motorsport Rally routing: tap map to snap waypoints along tarmac &amp; stage roads. Use "Direct line" per waypoint for straight legs.</p>
+            <p class="hint" id="mode-hint">Motorsport Rally routing: 1st tap is Start (all points editable) — choose any waypoint as Finish in the list below.</p>
             <div class="controls-btn-grid">
                 <button id="undo-btn" type="button" class="secondary" disabled title="Undo last route change (Ctrl+Z)">↶ Undo</button>
                 <button id="redo-btn" type="button" class="secondary" disabled title="Redo route change (Ctrl+Y)">↷ Redo</button>
@@ -2425,8 +2455,8 @@
                 return 'Tap anywhere on the map to drop an editable text box.';
             }
             return isRoadSnapEnabled
-                ? 'Motorsport Rally routing: tap map to snap waypoints along tarmac & stage roads. Use "Direct line" per waypoint for straight legs.'
-                : 'Motorsport Rally routing (no marker snap): markers stay at your exact taps while routing along roads.';
+                ? 'Motorsport Rally routing: 1st tap is Start (all points editable) — choose any waypoint as Finish in the list below.'
+                : 'Motorsport Rally routing (no marker snap): 1st tap is Start; choose any waypoint as Finish in the list below.';
         }
 
         function setTextBoxPlacementMode(active) {
@@ -3375,6 +3405,10 @@
                             </label>
                        </div>`;
 
+                const setFinishBtnHtml = (idx > 0 && iconMeta.id !== 'finish')
+                    ? `<button type="button" class="wp-set-finish-btn" title="Mark waypoint ${idx + 1} as Finish">🏁 Set Finish</button>`
+                    : '';
+
                 const row = document.createElement('div');
                 row.className = 'wp-row';
                 row.innerHTML = `
@@ -3388,6 +3422,7 @@
                         <select id="wp-icon-${idx}" class="wp-icon-select" data-wp-icon-idx="${idx}" aria-label="Waypoint ${idx + 1} icon">
                             ${iconOptionsHtml}
                         </select>
+                        ${setFinishBtnHtml}
                     </div>
                     ${directToggleHtml}
                     <div class="wp-note-field">
@@ -3399,9 +3434,46 @@
                 const numBadge = row.querySelector('.wp-num');
                 const sidebarInput = row.querySelector('.wp-label-input');
                 const iconSelect = row.querySelector('.wp-icon-select');
+                const setFinishBtn = row.querySelector('.wp-set-finish-btn');
                 const directCheckbox = row.querySelector('.wp-direct-checkbox');
                 const noteTextarea = row.querySelector('.wp-note-textarea');
                 const delBtn = row.querySelector('.wp-del-btn');
+
+                const syncMarkerElementVisuals = (targetIdx) => {
+                    const targetWp = currentWaypoints[targetIdx];
+                    if (!targetWp) return;
+                    const targetMeta = getWaypointIconMeta(targetWp);
+                    const marker = waypointMarkers[targetIdx];
+                    if (marker && marker.getElement()) {
+                        const badgeEl = marker.getElement().querySelector('.waypoint-badge');
+                        if (badgeEl) {
+                            badgeEl.style.background = targetMeta.color;
+                            let iconSpan = badgeEl.querySelector('.wp-badge-icon');
+                            if (targetMeta.id === 'default') {
+                                if (iconSpan) iconSpan.remove();
+                            } else {
+                                if (!iconSpan) {
+                                    iconSpan = document.createElement('span');
+                                    iconSpan.className = 'wp-badge-icon';
+                                    const numEl = badgeEl.querySelector('.number');
+                                    if (numEl && numEl.nextSibling) {
+                                        badgeEl.insertBefore(iconSpan, numEl.nextSibling);
+                                    } else {
+                                        badgeEl.prepend(iconSpan);
+                                    }
+                                }
+                                iconSpan.textContent = targetMeta.emoji;
+                                iconSpan.title = targetMeta.label;
+                            }
+                            const mapInput = badgeEl.querySelector('.waypoint-map-input');
+                            if (mapInput) {
+                                mapInput.value = targetWp.label || '';
+                                mapInput.style.width = measureInputWidth(targetWp.label || '', `Point ${targetIdx + 1}`);
+                            }
+                        }
+                    }
+                    updateWaypointMarkerVisibility(targetIdx);
+                };
 
                 sidebarInput.addEventListener('input', (e) => {
                     const val = e.target.value;
@@ -3423,42 +3495,51 @@
                 });
 
                 iconSelect.addEventListener('change', (e) => {
+                    const prevIconId = normalizeWaypointIconId(currentWaypoints[idx].icon);
                     const nextIconId = normalizeWaypointIconId(e.target.value);
                     currentWaypoints[idx].icon = nextIconId;
-                    const nextMeta = getWaypointIconMeta(currentWaypoints[idx]);
 
-                    if (numBadge) {
-                        numBadge.style.background = nextMeta.color;
-                    }
-
-                    const marker = waypointMarkers[idx];
-                    if (marker && marker.getElement()) {
-                        const badgeEl = marker.getElement().querySelector('.waypoint-badge');
-                        if (badgeEl) {
-                            badgeEl.style.background = nextMeta.color;
-                            let iconSpan = badgeEl.querySelector('.wp-badge-icon');
-                            if (nextMeta.id === 'default') {
-                                if (iconSpan) iconSpan.remove();
-                            } else {
-                                if (!iconSpan) {
-                                    iconSpan = document.createElement('span');
-                                    iconSpan.className = 'wp-badge-icon';
-                                    const numEl = badgeEl.querySelector('.number');
-                                    if (numEl && numEl.nextSibling) {
-                                        badgeEl.insertBefore(iconSpan, numEl.nextSibling);
-                                    } else {
-                                        badgeEl.prepend(iconSpan);
-                                    }
-                                }
-                                iconSpan.textContent = nextMeta.emoji;
-                                iconSpan.title = nextMeta.label;
-                            }
+                    const trimmedLabel = (currentWaypoints[idx].label || '').trim();
+                    if (!trimmedLabel) {
+                        if (nextIconId === 'finish') {
+                            currentWaypoints[idx].label = 'Finish';
+                        } else if (nextIconId === 'start') {
+                            currentWaypoints[idx].label = 'Start';
+                        }
+                    } else if (nextIconId === 'default') {
+                        if (prevIconId === 'finish' && trimmedLabel.toLowerCase() === 'finish') {
+                            currentWaypoints[idx].label = '';
+                        } else if (prevIconId === 'start' && trimmedLabel.toLowerCase() === 'start') {
+                            currentWaypoints[idx].label = '';
                         }
                     }
 
-                    updateWaypointMarkerVisibility(idx);
+                    syncMarkerElementVisuals(idx);
+                    renderSidebarWaypointList();
                     recordHistoryState();
                 });
+
+                if (setFinishBtn) {
+                    setFinishBtn.addEventListener('click', () => {
+                        currentWaypoints.forEach((otherWp, otherIdx) => {
+                            if (otherIdx !== idx && normalizeWaypointIconId(otherWp.icon) === 'finish') {
+                                otherWp.icon = 'default';
+                                if ((otherWp.label || '').trim().toLowerCase() === 'finish') {
+                                    otherWp.label = '';
+                                }
+                                syncMarkerElementVisuals(otherIdx);
+                            }
+                        });
+
+                        currentWaypoints[idx].icon = 'finish';
+                        if (!(currentWaypoints[idx].label || '').trim()) {
+                            currentWaypoints[idx].label = 'Finish';
+                        }
+                        syncMarkerElementVisuals(idx);
+                        renderSidebarWaypointList();
+                        recordHistoryState();
+                    });
+                }
 
                 if (directCheckbox) {
                     directCheckbox.addEventListener('change', (e) => {
@@ -3732,9 +3813,6 @@
             if (currentWaypoints.length === 0) {
                 defaultLabel = 'Start';
                 defaultIcon = 'start';
-            } else if (currentWaypoints.length === 1) {
-                defaultLabel = 'Finish';
-                defaultIcon = 'finish';
             }
 
             currentWaypoints.push({
