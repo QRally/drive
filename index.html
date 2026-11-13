@@ -1485,8 +1485,7 @@
             background: rgba(220, 38, 38, 0.38);
         }
 
-        body.dark-mode #map-workspace,
-        body.dark-mode #map {
+        body.dark-mode #map-workspace {
             background: #0b1120;
         }
 
@@ -1792,8 +1791,6 @@
                     <select id="map-style-select" aria-label="Map tile style">
                         <option value="landranger" selected>OS Landranger Topo</option>
                         <option value="osm">Standard Street (OSM)</option>
-                        <option value="cyclosm">Topo &amp; Contours</option>
-                        <option value="dark">Dark Matter (Night)</option>
                     </select>
                     <label class="os-grid-toggle-label" title="Show British National Grid (OSGB36) 1km squares">
                         <input type="checkbox" id="os-grid-toggle" checked />
@@ -1802,27 +1799,19 @@
                 </div>
             </div>
             <div class="routing-options-row">
-                <label for="routing-mode-select">Routing</label>
+                <label>Stage Options</label>
                 <div class="routing-controls-group">
-                    <select id="routing-mode-select" aria-label="Routing mode">
-                        <option value="rally" selected>Rally / Stage Roads</option>
-                        <option value="roads">Public Roads (Car)</option>
-                        <option value="direct">Direct (Exact)</option>
-                    </select>
                     <label id="snap-toggle-label" class="snap-toggle-label" title="Snap dropped and dragged waypoints onto the nearest road">
                         <input type="checkbox" id="snap-roads-toggle" checked />
-                        Snap
+                        Snap to Road
+                    </label>
+                    <label class="snap-toggle-label" title="Hide unnamed shaping waypoints (no label and default Waypoint icon) on the map while keeping Start, Finish, Controls, and named points visible">
+                        <input type="checkbox" id="hide-shaping-toggle" checked />
+                        Hide Shaping
                     </label>
                 </div>
             </div>
-            <p class="hint" id="mode-hint">Rally / Stage Roads (Valhalla): follows tarmac, private/MOD &amp; forestry stage roads.</p>
-            <div class="routing-options-row">
-                <label for="hide-shaping-toggle">Markers</label>
-                <label class="snap-toggle-label" title="Hide unnamed shaping waypoints (no label and default Waypoint icon) on the map while keeping Start, Finish, Controls, and named points visible">
-                    <input type="checkbox" id="hide-shaping-toggle" checked />
-                    Hide unnamed shaping points
-                </label>
-            </div>
+            <p class="hint" id="mode-hint">Motorsport Rally routing: tap map to snap waypoints along tarmac &amp; stage roads. Use "Direct line" per waypoint for straight legs.</p>
             <div class="controls-btn-grid">
                 <button id="undo-btn" type="button" class="secondary" disabled title="Undo last route change (Ctrl+Z)">↶ Undo</button>
                 <button id="redo-btn" type="button" class="secondary" disabled title="Redo route change (Ctrl+Y)">↷ Redo</button>
@@ -2344,11 +2333,12 @@
                 historyIndex = -1;
                 recordHistoryState();
 
-                const needsValhallaRecalc = draft.engine !== 'valhalla' && currentRoutingMode !== 'direct';
+                const hasNonDirectLegs = currentWaypoints.length >= 2 && currentWaypoints.slice(1).some(w => !w.direct);
+                const isFallbackGeometry = areWaypointCoordsEqual(currentRouteGeometry, currentWaypoints);
+                const needsValhallaRecalc = (draft.engine !== 'valhalla' || (isFallbackGeometry && hasNonDirectLegs));
                 if (!needsValhallaRecalc && currentRouteGeometry.length >= 2 && currentWaypoints.length >= 2) {
-                    const isFallbackLine = areWaypointCoordsEqual(currentRouteGeometry, currentWaypoints);
-                    drawRouteLines(currentRouteGeometry, currentWaypoints, isFallbackLine);
-                    updateRouteDistanceDisplay(isFallbackLine ? `~${formatDistance(currentRouteDistanceMeters)}` : undefined);
+                    drawRouteLines(currentRouteGeometry, currentWaypoints, false);
+                    updateRouteDistanceDisplay();
                     refreshElevationProfile();
                 } else if (currentWaypoints.length >= 1) {
                     updateRoutingWaypoints();
@@ -2434,17 +2424,9 @@
             if (isPlacingTextBox) {
                 return 'Tap anywhere on the map to drop an editable text box.';
             }
-            if (currentRoutingMode === 'direct') {
-                return 'Direct mode: tap map to place exact waypoints connected by straight lines.';
-            }
-            if (currentRoutingMode === 'roads') {
-                return isRoadSnapEnabled
-                    ? 'Public Roads (Car): Valhalla car routing on unrestricted public roads.'
-                    : 'Public Roads (no marker snap): markers stay at your exact taps.';
-            }
             return isRoadSnapEnabled
-                ? 'Rally / Stage Roads (Valhalla): follows tarmac, private/MOD & forestry stage roads.'
-                : 'Rally / Stage Roads (no marker snap): markers stay at your exact taps.';
+                ? 'Motorsport Rally routing: tap map to snap waypoints along tarmac & stage roads. Use "Direct line" per waypoint for straight legs.'
+                : 'Motorsport Rally routing (no marker snap): markers stay at your exact taps while routing along roads.';
         }
 
         function setTextBoxPlacementMode(active) {
@@ -2548,12 +2530,12 @@
             scheduleAutoSave(400);
         }
 
-        function normalizeRoutingMode(mode) {
-            return Object.prototype.hasOwnProperty.call(ROUTING_MODE_CONFIGS, mode) ? mode : 'rally';
+        function normalizeRoutingMode() {
+            return 'rally';
         }
 
         function getActiveRoutingConfig() {
-            return ROUTING_MODE_CONFIGS[currentRoutingMode] || ROUTING_MODE_CONFIGS.rally;
+            return ROUTING_MODE_CONFIGS.rally;
         }
 
         function getRoadSnapMaxMeters() {
@@ -2566,35 +2548,14 @@
 
         function setRoutingMode(mode, options) {
             const opts = options || {};
-            const nextMode = normalizeRoutingMode(mode);
-            currentRoutingMode = nextMode;
-
-            const select = document.getElementById('routing-mode-select');
-            if (select && select.value !== nextMode) {
-                select.value = nextMode;
-            }
-            const toggle = document.getElementById('snap-roads-toggle');
-            const toggleLabel = document.getElementById('snap-toggle-label');
-            const isDirect = nextMode === 'direct';
-            if (toggle) {
-                toggle.disabled = isDirect;
-            }
-            if (toggleLabel) {
-                toggleLabel.classList.toggle('is-disabled', isDirect);
-            }
+            currentRoutingMode = 'rally';
             if (!isPlacingTextBox) {
                 setTextBoxPlacementMode(false);
             }
-
             initRouting(true);
-
             if (!opts.skipRecalc && currentWaypoints.length > 0) {
                 updateRoutingWaypoints();
             }
-            if (!opts.silent) {
-                showToast(`Routing mode: ${getActiveRoutingConfig().label}`);
-            }
-            scheduleAutoSave(400);
         }
 
         function setRoadSnapEnabled(enabled, options) {
@@ -3042,10 +3003,12 @@
             }
         }
 
-        async function routeChainWithValhalla(cfg, sliceWps, searchRadius) {
-            if (!cfg || !cfg.routeUrl || !Array.isArray(sliceWps) || sliceWps.length < 2) return null;
+        const MAX_VALHALLA_LOCATIONS = 10;
 
-            const locations = sliceWps.map((wp) => ({
+        async function requestValhallaSubchain(cfg, wps, searchRadius) {
+            if (!cfg || !cfg.routeUrl || !Array.isArray(wps) || wps.length < 2) return null;
+
+            const locations = wps.map((wp) => ({
                 lat: Number(wp.lat),
                 lon: Number(wp.lng),
                 type: 'break',
@@ -3071,14 +3034,55 @@
                 if (!res.ok) return null;
                 const data = await res.json();
                 const legs = data && data.trip && Array.isArray(data.trip.legs) ? data.trip.legs : null;
-                if (!legs || legs.length !== sliceWps.length - 1) return null;
+                if (!legs || legs.length !== wps.length - 1) return null;
 
                 const decodedLegs = legs.map((leg) => decodeValhallaPolyline6(leg.shape));
                 if (decodedLegs.some(pts => pts.length < 2)) return null;
-                return { legs: decodedLegs };
+                return decodedLegs;
             } catch (e) {
                 return null;
             }
+        }
+
+        async function routeChainWithValhalla(cfg, sliceWps, searchRadius) {
+            if (!cfg || !cfg.routeUrl || !Array.isArray(sliceWps) || sliceWps.length < 2) return null;
+
+            const allLegs = [];
+            let startIdx = 0;
+
+            while (startIdx < sliceWps.length - 1) {
+                const endIdx = Math.min(sliceWps.length, startIdx + MAX_VALHALLA_LOCATIONS);
+                const subWps = sliceWps.slice(startIdx, endIdx).map(wp => ({ ...wp }));
+
+                if (allLegs.length > 0) {
+                    const prevLeg = allLegs[allLegs.length - 1];
+                    if (prevLeg && prevLeg.length >= 2) {
+                        const prevEnd = prevLeg[prevLeg.length - 1];
+                        subWps[0].lat = prevEnd.lat;
+                        subWps[0].lng = prevEnd.lng;
+                    }
+                }
+
+                const subLegs = await requestValhallaSubchain(cfg, subWps, searchRadius);
+                if (subLegs) {
+                    allLegs.push(...subLegs);
+                } else if (subWps.length > 2) {
+                    // Recover good legs individually if one waypoint in the batch failed
+                    for (let k = 0; k < subWps.length - 1; k++) {
+                        const pairStart = (k === 0) ? subWps[0] : sliceWps[startIdx + k];
+                        const pairEnd = sliceWps[startIdx + k + 1];
+                        const pairLegs = await requestValhallaSubchain(cfg, [pairStart, pairEnd], searchRadius);
+                        allLegs.push(pairLegs && pairLegs[0] ? pairLegs[0] : null);
+                    }
+                } else {
+                    allLegs.push(null);
+                }
+
+                startIdx = endIdx - 1;
+            }
+
+            if (!allLegs.some(Boolean)) return null;
+            return { legs: allLegs };
         }
 
         function appendGeometryPoints(target, points) {
@@ -3183,9 +3187,11 @@
                     const wp = currentWaypoints[globalIdx];
                     if (!wp || wp.direct || !isRoadSnapEnabled) continue;
 
-                    const snappedPt = (m === 0)
-                        ? route.legs[0][0]
-                        : route.legs[m - 1][route.legs[m - 1].length - 1];
+                    const prevLeg = m > 0 ? route.legs[m - 1] : null;
+                    const nextLeg = m < route.legs.length ? route.legs[m] : null;
+                    const snappedPt = (prevLeg && prevLeg.length >= 2)
+                        ? prevLeg[prevLeg.length - 1]
+                        : ((nextLeg && nextLeg.length >= 2) ? nextLeg[0] : null);
                     if (snappedPt && isFinite(snappedPt.lat) && isFinite(snappedPt.lng)) {
                         const rawLatLng = L.latLng(wp.lat, wp.lng);
                         const snappedLatLng = L.latLng(snappedPt.lat, snappedPt.lng);
@@ -4466,8 +4472,6 @@
 
                 const tileUrlFor = (z, x, y) => {
                     if (activeMapStyle === 'landranger') return `https://a.tile.opentopomap.org/${z}/${x}/${y}.png`;
-                    if (activeMapStyle === 'cyclosm') return `https://a.tile-cyclosm.openstreetmap.fr/cyclosm/${z}/${x}/${y}.png`;
-                    if (activeMapStyle === 'dark') return `https://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png`;
                     return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
                 };
 
@@ -4601,6 +4605,7 @@
 
             // Draw waypoint badges
             currentWaypoints.forEach((wp, idx) => {
+                if (hideUnnamedShapingPoints && isUnnamedShapingPoint(wp)) return;
                 const pt = map.latLngToContainerPoint(L.latLng(wp.lat, wp.lng));
                 const iconMeta = getWaypointIconMeta(wp);
                 const rawLabel = wp.label ? wp.label : `Point ${idx + 1}`;
@@ -5079,7 +5084,7 @@
             const rawPngUrl = await window.domtoimage.toPng(mapEl, {
                 width: width * scale,
                 height: height * scale,
-                bgcolor: isDarkMode ? '#0b1120' : '#e9eef5',
+                bgcolor: '#e9eef5',
                 quality: 1,
                 imagePlaceholder: placeholderPixel,
                 style: {
@@ -5589,13 +5594,10 @@
                     const startN = Math.floor(minN / step) * step;
 
                     const ctx = tile.getContext('2d');
-                    const useDarkGrid = isDarkMode || activeMapStyle === 'dark';
-                    ctx.strokeStyle = useDarkGrid
-                        ? (coords.z >= 12 ? 'rgba(56, 189, 248, 0.42)' : 'rgba(56, 189, 248, 0.34)')
-                        : (coords.z >= 12 ? 'rgba(0, 118, 192, 0.36)' : 'rgba(0, 118, 192, 0.30)');
+                    ctx.strokeStyle = coords.z >= 12 ? 'rgba(0, 118, 192, 0.36)' : 'rgba(0, 118, 192, 0.30)';
                     ctx.lineWidth = 1;
                     ctx.font = '700 10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-                    ctx.fillStyle = useDarkGrid ? 'rgba(125, 211, 252, 0.86)' : 'rgba(0, 102, 168, 0.78)';
+                    ctx.fillStyle = 'rgba(0, 102, 168, 0.78)';
 
                     for (let e = startE; e <= maxE + step; e += step) {
                         const pTop = toPx(e, minN - step);
@@ -5641,8 +5643,7 @@
                                 if (pt.x > 6 && pt.x < size.x - 24 && pt.y > 16 && pt.y < size.y - 6) {
                                     const e2 = String(Math.floor((e % 100000) / 1000)).padStart(2, '0');
                                     const n2 = String(Math.floor((n % 100000) / 1000)).padStart(2, '0');
-                                    const useDarkSq = isDarkMode || activeMapStyle === 'dark';
-                                    ctx.fillStyle = useDarkSq ? 'rgba(125, 211, 252, 0.68)' : 'rgba(0, 102, 168, 0.55)';
+                                    ctx.fillStyle = 'rgba(0, 102, 168, 0.55)';
                                     ctx.fillText(`${sq}${e2}${n2}`, pt.x + 3, pt.y - 3);
                                 }
                             }
@@ -5656,21 +5657,20 @@
         }
 
         function setMapStyle(styleKey) {
-            if (!map || !baseTileLayers[styleKey]) return;
-            activeMapStyle = styleKey;
-            if (styleKey !== 'dark') {
-                lastLightMapStyle = styleKey;
-            }
+            const safeKey = baseTileLayers[styleKey] ? styleKey : 'landranger';
+            if (!map || !baseTileLayers[safeKey]) return;
+            activeMapStyle = safeKey;
+            lastLightMapStyle = safeKey;
             Object.entries(baseTileLayers).forEach(([key, layer]) => {
-                if (key === styleKey) {
+                if (key === safeKey) {
                     if (!map.hasLayer(layer)) layer.addTo(map);
                 } else {
                     if (map.hasLayer(layer)) map.removeLayer(layer);
                 }
             });
             const select = document.getElementById('map-style-select');
-            if (select && select.value !== styleKey) {
-                select.value = styleKey;
+            if (select && select.value !== safeKey) {
+                select.value = safeKey;
             }
             if (osgbGridLayer && typeof osgbGridLayer.redraw === 'function') {
                 osgbGridLayer.redraw();
@@ -5693,17 +5693,6 @@
                 try {
                     localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
                 } catch (e) {}
-            }
-
-            if (!opts.skipMapTileSwitch) {
-                if (isDarkMode) {
-                    if (activeMapStyle !== 'dark') {
-                        lastLightMapStyle = activeMapStyle;
-                        setMapStyle('dark');
-                    }
-                } else if (activeMapStyle === 'dark') {
-                    setMapStyle(lastLightMapStyle || 'landranger');
-                }
             }
 
             if (osgbGridLayer && typeof osgbGridLayer.redraw === 'function') {
@@ -6223,24 +6212,9 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             });
 
-            const cyclosmLayer = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                crossOrigin: 'anonymous',
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | <a href="https://www.cyclosm.org">CyclOSM</a>'
-            });
-
-            const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                subdomains: 'abcd',
-                maxZoom: 20,
-                crossOrigin: 'anonymous',
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            });
-
             baseTileLayers = {
                 landranger: landrangerLayer,
-                osm: osmLayer,
-                cyclosm: cyclosmLayer,
-                dark: darkLayer
+                osm: osmLayer
             };
 
             osgbGridLayer = createOsgbGridLayer();
@@ -6252,20 +6226,14 @@
                 }
             } catch (e) {}
 
-            if (savedTheme === 'dark') {
-                activeMapStyle = 'dark';
-                darkLayer.addTo(map);
-            } else {
-                landrangerLayer.addTo(map);
-            }
+            activeMapStyle = 'landranger';
+            landrangerLayer.addTo(map);
             osgbGridLayer.addTo(map);
 
             L.control.layers(
                 {
                     'OS Landranger Topo': landrangerLayer,
-                    'Standard Street (OSM)': osmLayer,
-                    'Topo & Contours': cyclosmLayer,
-                    'Dark Matter (Night)': darkLayer
+                    'Standard Street (OSM)': osmLayer
                 },
                 {
                     'OS National Grid (1km)': osgbGridLayer
@@ -6276,11 +6244,7 @@
             map.on('baselayerchange', (e) => {
                 if (e.layer === landrangerLayer) activeMapStyle = 'landranger';
                 else if (e.layer === osmLayer) activeMapStyle = 'osm';
-                else if (e.layer === cyclosmLayer) activeMapStyle = 'cyclosm';
-                else if (e.layer === darkLayer) activeMapStyle = 'dark';
-                if (activeMapStyle !== 'dark') {
-                    lastLightMapStyle = activeMapStyle;
-                }
+                lastLightMapStyle = activeMapStyle;
                 const select = document.getElementById('map-style-select');
                 if (select) select.value = activeMapStyle;
                 if (osgbGridLayer && typeof osgbGridLayer.redraw === 'function') {
@@ -6288,7 +6252,7 @@
                 }
             });
 
-            setThemeMode(savedTheme, { skipPersist: true, skipMapTileSwitch: true });
+            setThemeMode(savedTheme, { skipPersist: true });
             const selectOnInit = document.getElementById('map-style-select');
             if (selectOnInit) selectOnInit.value = activeMapStyle;
 
@@ -6313,10 +6277,6 @@
             const osGridToggle = document.getElementById('os-grid-toggle');
             if (osGridToggle) {
                 osGridToggle.addEventListener('change', (e) => setOsGridVisible(e.target.checked));
-            }
-            const routingModeSelect = document.getElementById('routing-mode-select');
-            if (routingModeSelect) {
-                routingModeSelect.addEventListener('change', (e) => setRoutingMode(e.target.value));
             }
             const snapRoadsToggle = document.getElementById('snap-roads-toggle');
             if (snapRoadsToggle) {
