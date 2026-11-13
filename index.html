@@ -1128,6 +1128,10 @@
             cursor: grabbing;
         }
 
+        .waypoint-marker-hidden {
+            display: none !important;
+        }
+
         .waypoint-badge .number {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 50%;
@@ -1812,6 +1816,13 @@
                 </div>
             </div>
             <p class="hint" id="mode-hint">Rally / Stage Roads (Valhalla): follows tarmac, private/MOD &amp; forestry stage roads.</p>
+            <div class="routing-options-row">
+                <label for="hide-shaping-toggle">Markers</label>
+                <label class="snap-toggle-label" title="Hide unnamed shaping waypoints (no label and default Waypoint icon) on the map while keeping Start, Finish, Controls, and named points visible">
+                    <input type="checkbox" id="hide-shaping-toggle" checked />
+                    Hide unnamed shaping points
+                </label>
+            </div>
             <div class="controls-btn-grid">
                 <button id="undo-btn" type="button" class="secondary" disabled title="Undo last route change (Ctrl+Z)">↶ Undo</button>
                 <button id="redo-btn" type="button" class="secondary" disabled title="Redo route change (Ctrl+Y)">↷ Redo</button>
@@ -2054,6 +2065,8 @@
         let osgbGridLayer = null;
         let isOsGridEnabled = true;
         let isRoadSnapEnabled = true;
+        let hideUnnamedShapingPoints = true;
+        const HIDE_SHAPING_STORAGE_KEY = 'routecraft_hide_unnamed_shaping';
         let currentRoutingMode = 'rally'; // 'rally' | 'roads' | 'direct'
         const VALHALLA_ROUTE_URL = 'https://valhalla1.openstreetmap.de/route';
         const VALHALLA_LOCATE_URL = 'https://valhalla1.openstreetmap.de/locate';
@@ -2164,6 +2177,7 @@
                 color: currentRouteColor,
                 routingMode: currentRoutingMode,
                 roadSnap: isRoadSnapEnabled,
+                hideShapingPoints: hideUnnamedShapingPoints,
                 distanceMeters: Number(currentRouteDistanceMeters) || 0,
                 waypoints: currentWaypoints.map(wp => ({
                     lat: Number(wp.lat),
@@ -2283,6 +2297,9 @@
                 }
                 if (typeof draft.roadSnap === 'boolean') {
                     setRoadSnapEnabled(draft.roadSnap, { skipRecalc: true, silent: true });
+                }
+                if (typeof draft.hideShapingPoints === 'boolean') {
+                    setHideUnnamedShapingPoints(draft.hideShapingPoints, { silent: true, skipPersist: true });
                 }
 
                 currentTextBoxes = Array.isArray(draft.textBoxes)
@@ -2595,6 +2612,52 @@
             }
             if (!opts.silent) {
                 showToast(isRoadSnapEnabled ? 'Waypoint snapping enabled' : 'Waypoint snapping disabled — exact points kept');
+            }
+            scheduleAutoSave(400);
+        }
+
+        function isUnnamedShapingPoint(wp) {
+            if (!wp) return false;
+            const hasLabel = typeof wp.label === 'string' && wp.label.trim().length > 0;
+            const iconId = normalizeWaypointIconId(wp.icon);
+            return !hasLabel && iconId === 'default';
+        }
+
+        function updateWaypointMarkerVisibility(index) {
+            const marker = waypointMarkers[index];
+            const wp = currentWaypoints[index];
+            const el = marker && typeof marker.getElement === 'function' ? marker.getElement() : null;
+            if (!el) return;
+            const shouldHide = Boolean(hideUnnamedShapingPoints && wp && isUnnamedShapingPoint(wp));
+            el.classList.toggle('waypoint-marker-hidden', shouldHide);
+            if (shouldHide) {
+                el.setAttribute('aria-hidden', 'true');
+            } else {
+                el.removeAttribute('aria-hidden');
+            }
+        }
+
+        function refreshAllWaypointMarkerVisibility() {
+            waypointMarkers.forEach((_, idx) => updateWaypointMarkerVisibility(idx));
+        }
+
+        function setHideUnnamedShapingPoints(enabled, options) {
+            const opts = options || {};
+            hideUnnamedShapingPoints = Boolean(enabled);
+            const toggle = document.getElementById('hide-shaping-toggle');
+            if (toggle && toggle.checked !== hideUnnamedShapingPoints) {
+                toggle.checked = hideUnnamedShapingPoints;
+            }
+            if (!opts.skipPersist) {
+                try {
+                    localStorage.setItem(HIDE_SHAPING_STORAGE_KEY, hideUnnamedShapingPoints ? '1' : '0');
+                } catch (e) {}
+            }
+            refreshAllWaypointMarkerVisibility();
+            if (!opts.silent) {
+                showToast(hideUnnamedShapingPoints
+                    ? 'Hiding unnamed shaping points on map'
+                    : 'Showing all waypoint markers on map');
             }
             scheduleAutoSave(400);
         }
@@ -3345,6 +3408,7 @@
                             mapInput.style.width = measureInputWidth(val, `Point ${idx + 1}`);
                         }
                     }
+                    updateWaypointMarkerVisibility(idx);
                     scheduleHistoryCommit();
                 });
 
@@ -3386,6 +3450,7 @@
                         }
                     }
 
+                    updateWaypointMarkerVisibility(idx);
                     recordHistoryState();
                 });
 
@@ -3498,6 +3563,8 @@
                     });
                     mapInput.addEventListener('blur', () => {
                         if (marker.dragging) marker.dragging.enable();
+                        const idx = waypointMarkers.indexOf(marker);
+                        if (idx !== -1) updateWaypointMarkerVisibility(idx);
                         if (historyInputTimer) recordHistoryState();
                     });
                     mapInput.addEventListener('input', (e) => {
@@ -3516,6 +3583,9 @@
                     const idx = waypointMarkers.indexOf(marker);
                     if (idx !== -1) removeWaypointAtIndex(idx);
                 });
+
+                const addedIdx = waypointMarkers.indexOf(marker);
+                updateWaypointMarkerVisibility(addedIdx !== -1 ? addedIdx : index);
             });
 
             marker.on('dragstart', () => {
@@ -5026,7 +5096,8 @@
                         node.classList.contains('leaflet-control-zoom') ||
                         node.classList.contains('leaflet-control-layers') ||
                         node.classList.contains('wp-map-del') ||
-                        node.classList.contains('map-textbox-del')
+                        node.classList.contains('map-textbox-del') ||
+                        node.classList.contains('waypoint-marker-hidden')
                     ) {
                         return false;
                     }
@@ -6250,6 +6321,16 @@
             const snapRoadsToggle = document.getElementById('snap-roads-toggle');
             if (snapRoadsToggle) {
                 snapRoadsToggle.addEventListener('change', (e) => setRoadSnapEnabled(e.target.checked));
+            }
+            const hideShapingToggle = document.getElementById('hide-shaping-toggle');
+            let savedHideShaping = true;
+            try {
+                const stored = localStorage.getItem(HIDE_SHAPING_STORAGE_KEY);
+                if (stored === '0') savedHideShaping = false;
+            } catch (e) {}
+            setHideUnnamedShapingPoints(savedHideShaping, { silent: true, skipPersist: true });
+            if (hideShapingToggle) {
+                hideShapingToggle.addEventListener('change', (e) => setHideUnnamedShapingPoints(e.target.checked));
             }
 
             const elevationPanel = document.getElementById('elevation-panel');
